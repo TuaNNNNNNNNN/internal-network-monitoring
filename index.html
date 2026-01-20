@@ -537,8 +537,15 @@
     async function loadData() {
       try {
         // Load all data
-        STORES_DATA = await fetchCSV(CSV_STORES);
-        EVENTS_DATA = await fetchCSV(CSV_EVENTS);
+        let rawStores = await fetchCSV(CSV_STORES);
+        let rawEvents = await fetchCSV(CSV_EVENTS);
+
+        // Filter empty rows
+        STORES_DATA = rawStores.filter(s => s.ID && s.ID.toString().trim());
+        EVENTS_DATA = rawEvents.filter(e => {
+          const cols = Object.values(e);
+          return cols.length > 1 && (cols[0] || cols[1]);
+        });
 
         // Try to load highlights, if fails just continue
         try {
@@ -547,10 +554,14 @@
           HIGHLIGHTS_DATA = [];
         }
 
-        console.log('Stores loaded:', STORES_DATA.length);
-        console.log('Events loaded:', EVENTS_DATA.length);
-        console.log('Sample Store:', STORES_DATA[0]);
-        console.log('Sample Event:', EVENTS_DATA[0]);
+        console.log('=== LOADED ===');
+        console.log('Stores:', STORES_DATA.length, '(raw:', rawStores.length, ')');
+        console.log('Events:', EVENTS_DATA.length, '(raw:', rawEvents.length, ')');
+        console.log('\n=== SAMPLES ===');
+        console.log('Store[0]:', STORES_DATA[0]);
+        console.log('Event[0]:', EVENTS_DATA[0]);
+        console.log('Event[0] keys:', Object.keys(EVENTS_DATA[0] || {}));
+        console.log('Event[0] values:', Object.values(EVENTS_DATA[0] || {}));
 
         // Process each store
         STORES_DATA.forEach(store => {
@@ -580,7 +591,11 @@
           store.highlights = highlights;
         });
 
-        console.log('Processed stores:', STORES_DATA.filter(s => s.violationCount > 0).length, 'have violations');
+        const withViolations = STORES_DATA.filter(s => s.violationCount > 0).length;
+        const totalViolations = STORES_DATA.reduce((sum, s) => sum + s.violationCount, 0);
+        console.log('\n=== RESULTS ===');
+        console.log('Stores with violations:', withViolations);
+        console.log('Total violations:', totalViolations);
 
         updateStats();
         renderMarkers();
