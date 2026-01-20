@@ -473,9 +473,10 @@
     const MAIL_SHEET_ID = '1Eea0RMfjsrv_JrCadKxdVWvYdsm14riZYtNcuUWOii0';
     const CSV_STORES = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
     const CSV_EVENTS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=484651391`;
+    const CSV_HIGHLIGHTS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=1234567890`; // Update with correct gid
     const CSV_MAIL = `https://docs.google.com/spreadsheets/d/${MAIL_SHEET_ID}/export?format=csv&gid=291208241`;
 
-    let map, STORES_DATA = [], EVENTS_DATA = [], markers = [];
+    let map, STORES_DATA = [], EVENTS_DATA = [], HIGHLIGHTS_DATA = [], markers = [];
     let currentTimeFilter = 'all', currentDisplayFilter = 'all';
 
     // Session Check
@@ -543,30 +544,69 @@
     }
 
     async function loadData() {
-      STORES_DATA = await fetchCSV(CSV_STORES);
-      EVENTS_DATA = await fetchCSV(CSV_EVENTS);
+      try {
+        // Load all data
+        STORES_DATA = await fetchCSV(CSV_STORES);
+        EVENTS_DATA = await fetchCSV(CSV_EVENTS);
 
-      // Calculate stats
-      STORES_DATA.forEach(store => {
-        const storeId = store.ID || store.id || store.Store_ID;
-        const storeEvents = EVENTS_DATA.filter(e => {
-          const eventStoreId = e.ID || e.Store_ID || e.storeId || e['Mã cửa hàng'];
-          return eventStoreId == storeId;
+        // Try to load highlights, if fails just continue
+        try {
+          HIGHLIGHTS_DATA = await fetchCSV(CSV_HIGHLIGHTS);
+        } catch (e) {
+          HIGHLIGHTS_DATA = [];
+        }
+
+        console.log('Stores loaded:', STORES_DATA.length);
+        console.log('Events loaded:', EVENTS_DATA.length);
+        console.log('Sample Store:', STORES_DATA[0]);
+        console.log('Sample Event:', EVENTS_DATA[0]);
+
+        // Process each store
+        STORES_DATA.forEach(store => {
+          const storeID = (store.ID || '').toString().trim();
+
+          // Count violations: match Events where column 2 (after Event_ID) equals Store.ID
+          // In CSV with headers, this would be the second column which might be named differently
+          // Let's use Object.values to get the second value
+          const violations = EVENTS_DATA.filter(event => {
+            const eventCols = Object.values(event);
+            const eventStoreID = (eventCols[1] || '').toString().trim(); // Column 2 (index 1)
+            return eventStoreID === storeID;
+          });
+
+          // Count highlights
+          const highlights = HIGHLIGHTS_DATA.filter(highlight => {
+            const highlightCols = Object.values(highlight);
+            const highlightStoreID = (highlightCols[1] || '').toString().trim();
+            return highlightStoreID === storeID;
+          });
+
+          store.violationCount = violations.length;
+          store.highlightCount = highlights.length;
+
+          // Store the events for popup display
+          store.violations = violations;
+          store.highlights = highlights;
         });
-        store.violationCount = storeEvents.length;
-      });
 
-      updateStats();
-      renderMarkers();
+        console.log('Processed stores:', STORES_DATA.filter(s => s.violationCount > 0).length, 'have violations');
+
+        updateStats();
+        renderMarkers();
+      } catch (e) {
+        console.error('Data load error:', e);
+        alert('Không thể tải dữ liệu. Vui lòng kiểm tra quyền truy cập Google Sheets.');
+      }
     }
 
     function updateStats() {
       const totalStores = STORES_DATA.length;
       const totalViolations = STORES_DATA.reduce((sum, s) => sum + (s.violationCount || 0), 0);
+      const totalHighlights = STORES_DATA.reduce((sum, s) => sum + (s.highlightCount || 0), 0);
 
       document.getElementById('total-stores').textContent = totalStores;
       document.getElementById('total-violations').textContent = totalViolations;
-      document.getElementById('total-rewards').textContent = '0';
+      document.getElementById('total-rewards').textContent = totalHighlights;
     }
 
     function renderMarkers() {
@@ -579,12 +619,14 @@
         if (currentDisplayFilter === 'violations' && (!store.violationCount || store.violationCount === 0)) return;
         if (currentDisplayFilter === 'clean' && store.violationCount && store.violationCount > 0) return;
 
-        let lat = parseFloat(store.Latitude || store.Lat || store.lat || store['Vĩ độ']);
-        let lng = parseFloat(store.Longitude || store.Lng || store.lng || store['Kinh độ']);
+        // Get coordinates - use exact column names
+        let lat = parseFloat(store.Latitude || 0);
+        let lng = parseFloat(store.Longitude || 0);
 
-        // Swap if needed
-        if (lat > 100 && lng < 30) [lat, lng] = [lng, lat];
-        if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) return;
+        if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+          console.warn('Invalid coords for store:', store.Store_Name, lat, lng);
+          return;
+        }
 
         const count = store.violationCount || 0;
         const markerColor = count === 0 ? 'marker-green' :
@@ -599,13 +641,35 @@
         });
 
         const marker = L.marker([lat, lng], { icon }).addTo(map);
-        marker.bindPopup(`
-                    <strong>${store.Store_Name || store.Name || 'Cửa hàng'}</strong><br>
-                    <small>${store.Address || ''}</small><br>
-                    Vi phạm: ${count}
-                `);
+
+        // Build popup content
+        let popupContent = `
+                    <div style="min-width: 200px;">
+                        <strong>${store.Store_Name || 'Cửa hàng'}</strong><br>
+                        <small style="color: #666;">${store.Address || ''}</small><br>
+                        <div style="margin-top: 8px;">
+                            <span style="color: #f44336;">⚠️ Vi phạm: ${count}</span><br>
+                            <span style="color: #4caf50;">🏆 Khen thưởng: ${store.highlightCount || 0}</span>
+                        </div>
+                `;
+
+        if (store.violations && store.violations.length > 0) {
+          popupContent += '<div style="margin-top: 8px; border-top: 1px solid #ddd; padding-top: 8px;">';
+          popupContent += '<strong style="font-size: 11px;">Vi phạm gần nhất:</strong><br>';
+          store.violations.slice(0, 2).forEach(v => {
+            const desc = Object.values(v)[4] || ''; // Description is column 5
+            popupContent += `<small style="color: #666;">${desc.substring(0, 100)}...</small><br>`;
+          });
+          popupContent += '</div>';
+        }
+
+        popupContent += '</div>';
+
+        marker.bindPopup(popupContent);
         markers.push(marker);
       });
+
+      console.log('Rendered markers:', markers.length);
     }
 
     function setTimeFilter(filter) {
