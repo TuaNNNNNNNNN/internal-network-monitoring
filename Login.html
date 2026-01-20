@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập hệ thống YODY</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            left: -50px;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .login-container::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            right: -30px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #48cae4, #023e8a);
+            border-radius: 50%;
+            opacity: 0.1;
+            animation: float 8s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+            }
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 600;
+            position: relative;
+            z-index: 1;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 16px;
+            line-height: 1.5;
+            position: relative;
+            z-index: 1;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+            z-index: 1;
+        }
+
+        input[type="email"] {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 2px solid #ecf0f1;
+            border-radius: 12px;
+            font-size: 16px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input[type="email"]:focus {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .error {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .success {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            color: #95a5a6;
+            font-size: 12px;
+        }
+
+        .security-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(46, 204, 113, 0.1);
+            color: #27ae60;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 2;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="security-badge">Bảo mật</div>
+        <div class="logo">Y</div>
+        <h2>Chào mừng đến với Thư viện Quản trị rủi ro</h2>
+        <p class="subtitle">Đăng nhập vào hệ thống nội bộ bằng email công ty của bạn</p>
+
+        <div class="input-group">
+            <span style="position: absolute; left: 15px; top: 15px; font-size: 20px;">📧</span>
+            <input type="email" id="emailInput" placeholder="example@yody.vn" required
+                onkeydown="if(event.key==='Enter') getClientIP()">
+        </div>
+
+        <button class="btn-primary" id="loginBtn" onclick="getClientIP()">
+            <span id="btnText">Đăng nhập</span>
+        </button>
+
+        <div id="message" class="message"></div>
+
+        <div class="footer">
+            <p>🔐 Trang web được bảo mật và chỉ dành cho nhân viên YODY</p>
+        </div>
+    </div>
+
+    <script>
+        function getClientIP() {
+            const emailInput = document.getElementById("emailInput");
+            const loginBtn = document.getElementById("loginBtn");
+            const btnText = document.getElementById("btnText");
+            const email = emailInput.value.trim();
+
+            if (!email) {
+                showMessage("❗ Vui lòng nhập email.", "error");
+                return;
+            }
+
+            if (btnText.innerText === 'Nhập lại') {
+                emailInput.value = '';
+                btnText.innerText = 'Đăng nhập';
+                document.getElementById('message').style.display = 'none';
+                return;
+            }
+
+            btnText.innerHTML = `<span class="loading"></span> Đang kiểm tra...`;
+            loginBtn.disabled = true;
+
+            fetch("https://api.ipify.org?format=json")
+                .then(response => response.json())
+                .then(data => {
+                    const ip = data.ip;
+                    google.script.run
+                        .withSuccessHandler(response => {
+                            if (response.status === "ok") {
+                                showMessage('✅ Đăng nhập thành công!', 'success');
+                                setTimeout(() => window.location.href = response.redirectUrl, 1000);
+                            } else {
+                                showMessage('❌ ' + response.message, 'error');
+                                btnText.innerText = 'Nhập lại';
+                                loginBtn.disabled = false;
+                            }
+                        })
+                        .withFailureHandler(error => {
+                            showMessage('Lỗi hệ thống: ' + error.message, 'error');
+                            btnText.innerText = 'Nhập lại';
+                            loginBtn.disabled = false;
+                        })
+                        .handleLogin(email, ip);
+                })
+                .catch(err => {
+                    // Fallback if IP fetch fails
+                    google.script.run
+                        .withSuccessHandler(response => {
+                            if (response.status === "ok") {
+                                window.location.href = response.redirectUrl;
+                            } else {
+                                showMessage('❌ ' + response.message, 'error');
+                                btnText.innerText = 'Nhập lại';
+                                loginBtn.disabled = false;
+                            }
+                        })
+                        .handleLogin(email, "Unknown");
+                });
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = 'message ' + type;
+            messageDiv.style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>

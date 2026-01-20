@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>YODY Risk Dashboard</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #5865F2;
+            --accent: #FBEF00;
+            --danger: #ff4757;
+            --success: #2ed573;
+            --warning: #ffa502;
+            --text-main: #ffffff;
+            --text-dim: #a4b0be;
+            --bg-glass: rgba(15, 23, 42, 0.85);
+            --border-glass: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            background: #0f172a;
+            color: var(--text-main);
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1;
+            background: #0f172a;
+        }
+
+        /* Floating Header */
+        .app-header {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            z-index: 1000;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            padding: 16px 24px;
+            border-radius: 20px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-circle {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #00468C, #0056b3);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 24px;
+            color: #FBEF00;
+        }
+
+        .header-text h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .header-text p {
+            font-size: 0.875rem;
+            color: var(--text-dim);
+        }
+
+        /* Side Panel */
+        #side-panel {
+            position: fixed;
+            top: 24px;
+            right: -480px;
+            width: 440px;
+            height: calc(100vh - 48px);
+            background: var(--bg-glass);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--border-glass);
+            box-shadow: -20px 0 60px rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            transition: right 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            border-radius: 24px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #side-panel.open {
+            right: 24px;
+        }
+
+        .panel-header {
+            padding: 32px;
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            border: none;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 47, 87, 0.2);
+        }
+
+        .panel-content {
+            padding: 24px 32px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Marker Styles */
+        .marker-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .marker-pulse {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            animation: pulse-ring 2s infinite;
+        }
+
+        .dot-core {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(0.5);
+                opacity: 0.8;
+            }
+
+            100% {
+                transform: scale(2.5);
+                opacity: 0;
+            }
+        }
+
+        .bg-high {
+            background: var(--danger);
+        }
+
+        .bg-medium {
+            background: var(--warning);
+        }
+
+        .bg-low {
+            background: var(--primary);
+        }
+
+        .bg-none {
+            background: var(--success);
+        }
+
+        .pulse-high {
+            background: rgba(239, 68, 68, 0.5);
+        }
+
+        .pulse-medium {
+            background: rgba(245, 158, 11, 0.5);
+        }
+
+        .pulse-low {
+            background: rgba(88, 101, 242, 0.5);
+        }
+
+        .pulse-none {
+            background: rgba(16, 185, 129, 0.5);
+        }
+
+        /* Detail Items */
+        .event-item {
+            padding: 20px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-glass);
+            margin-bottom: 16px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .event-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .event-type {
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .event-title {
+            font-weight: 500;
+            font-size: 1rem;
+            color: var(--text-main);
+        }
+
+        /* Hover Detail Card */
+        #hover-box {
+            display: none;
+            position: fixed;
+            right: 480px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 360px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(30px);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--border-glass);
+            z-index: 1002;
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translate(20px, -50%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(0, -50%);
+            }
+        }
+
+        .stat-card {
+            padding: 20px;
+            border-radius: 20px;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -20%;
+            right: -10%;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: #0f172a;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loading" class="loading-screen">
+        <div class="spinner"></div>
+        <p style="font-weight: 500; color: var(--text-dim)">Đang khởi tạo bản đồ...</p>
+    </div>
+
+    <div class="app-header">
+        <div class="logo-circle">Y</div>
+        <div class="header-text">
+            <h1>Risk Management</h1>
+            <p>Vietnam Network Monitoring</p>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <div id="side-panel">
+        <button class="close-btn" onclick="closePanel()">✕</button>
+        <div class="panel-header">
+            <h2 id="s-name" style="font-size: 1.75rem; font-weight: 700; margin-bottom: 8px;">Tên cửa hàng</h2>
+            <p id="s-addr" style="color: var(--text-dim); font-size: 0.9375rem; line-height: 1.4;">Địa chỉ...</p>
+        </div>
+
+        <div class="panel-content">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px;">
+                <div class="stat-card"
+                    style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.2);">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--danger);" id="v-count">0</div>
+                    <div style="font-size: 12px; font-weight: 600; color: var(--danger); text-transform: uppercase;">Vi
+                        phạm</div>
+                </div>
+                <div class="stat-card"
+                    style="background: rgba(46, 213, 115, 0.15); border: 1px solid rgba(46, 213, 115, 0.2);">
+                    <div style="font-size: 28px; font-weight: 700; color: var(--success);" id="r-count">0</div>
+                    <div style="font-size: 12px; font-weight: 600; color: var(--success); text-transform: uppercase;">
+                        Thành tích</div>
+                </div>
+            </div>
+
+            <h3
+                style="font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-bottom: 20px; letter-spacing: 0.05em;">
+                Lịch sử ghi nhận</h3>
+            <div id="list-container"></div>
+        </div>
+    </div>
+
+    <div id="hover-box">
+        <div style="margin-bottom: 24px;">
+            <div id="h-type"
+                style="font-size: 0.7rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;">
+                LOẠI SỰ KIỆN</div>
+            <div id="h-id" style="font-size: 1.125rem; font-weight: 700; color: white;">#ID - Title</div>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+            <div
+                style="font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-bottom: 12px;">
+                Chi tiết tình huống</div>
+            <div id="h-desc" style="font-size: 0.9375rem; line-height: 1.6; color: rgba(255,255,255,0.9);">Mô tả sự
+                kiện...</div>
+        </div>
+
+        <div id="h-severity-box"
+            style="padding: 16px; border-radius: 16px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); display: none;">
+            <div
+                style="font-size: 0.7rem; font-weight: 700; color: var(--danger); text-transform: uppercase; margin-bottom: 4px;">
+                Impact Level</div>
+            <div id="h-severity-val" style="font-weight: 700; color: var(--danger);">Critical</div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let map, markers = [];
+
+        function init() {
+            // Focus on Vietnam [16, 106]
+            map = L.map('map', {
+                zoomControl: false,
+                attributionControl: false
+            }).setView([16.0, 106.0], 6);
+
+            // Professional Dark Theme Tiles
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19
+            }).addTo(map);
+
+            google.script.run
+                .withSuccessHandler(res => {
+                    document.getElementById('loading').style.opacity = '0';
+                    setTimeout(() => document.getElementById('loading').style.display = 'none', 500);
+                    if (res.stores) renderMarkers(res.stores);
+                })
+                .getStoresData();
+        }
+
+        function renderMarkers(stores) {
+            stores.forEach(s => {
+                const icon = L.divIcon({
+                    className: 'custom-icon',
+                    html: `
+                        <div class="marker-container">
+                            <div class="marker-pulse pulse-${s.riskLevel}"></div>
+                            <div class="dot-core bg-${s.riskLevel}"></div>
+                        </div>
+                    `,
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                });
+
+                const m = L.marker([s.lat, s.lng], { icon: icon })
+                    .addTo(map)
+                    .on('click', () => loadDetails(s));
+                markers.push(m);
+            });
+
+            // Adjust bounds if data exists
+            if (stores.length > 0) {
+                const coords = stores.map(s => [s.lat, s.lng]);
+                map.fitBounds(L.latLngBounds(coords), { padding: [100, 100], maxZoom: 8 });
+            }
+        }
+
+        function loadDetails(store) {
+            document.getElementById('s-name').innerText = store.name;
+            document.getElementById('s-addr').innerText = store.address;
+            document.getElementById('v-count').innerText = store.violations;
+            document.getElementById('r-count').innerText = store.rewards;
+
+            const container = document.getElementById('list-container');
+            container.innerHTML = '<div class="spinner" style="width:24px;height:24px;margin:20px auto;"></div>';
+            document.getElementById('side-panel').classList.add('open');
+
+            google.script.run
+                .withSuccessHandler(res => {
+                    container.innerHTML = '';
+                    if (res.violations) res.violations.forEach(v => container.appendChild(createItem(v, 'Violation')));
+                    if (res.rewards) res.rewards.forEach(r => container.appendChild(createItem(r, 'Reward')));
+                    if (container.innerHTML === '') container.innerHTML = '<p style="color:var(--text-dim);text-align:center;margin-top:20px;">Không có dữ liệu sự kiện.</p>';
+                })
+                .getStoreDetails(store.id);
+        }
+
+        function createItem(item, type) {
+            const div = document.createElement('div');
+            div.className = 'event-item';
+            div.innerHTML = `
+                <div class="event-type" style="color: ${type === 'Violation' ? 'var(--danger)' : 'var(--success)'}">${type === 'Violation' ? 'Tình huống rủi ro' : 'Khen thưởng / Thành tích'}</div>
+                <div class="event-title">${item.type || 'Sự kiện'} #${item.id}</div>
+            `;
+
+            div.onmouseenter = () => showHover(item, type);
+            div.onmouseleave = hideHover;
+            return div;
+        }
+
+        function showHover(item, type) {
+            const box = document.getElementById('hover-box');
+            document.getElementById('h-type').innerText = type === 'Violation' ? 'Tình huống chi tiết' : 'Ghi nhận thành tích';
+            document.getElementById('h-id').innerText = '#' + item.id + (item.type ? ' - ' + item.type : '');
+            document.getElementById('h-desc').innerText = item.desc;
+
+            const sevBox = document.getElementById('h-severity-box');
+            if (type === 'Violation' && item.severity) {
+                sevBox.style.display = 'block';
+                document.getElementById('h-severity-val').innerText = getSevText(item.severity);
+            } else {
+                sevBox.style.display = 'none';
+            }
+
+            box.style.display = 'block';
+        }
+
+        function getSevText(s) {
+            if (s >= 5) return 'Mức độ 5: Rất nghiêm trọng';
+            if (s >= 4) return 'Mức độ 4: Cao';
+            if (s >= 3) return 'Mức độ 3: Trung bình';
+            return 'Mức độ 2: Thấp';
+        }
+
+        function hideHover() { document.getElementById('hover-box').style.display = 'none'; }
+        function closePanel() { document.getElementById('side-panel').classList.remove('open'); hideHover(); }
+
+        window.onload = init;
+    </script>
+</body>
+
+</html>
