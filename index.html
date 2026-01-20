@@ -1,410 +1,605 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
+
 <head>
-  <base target="_top">
-  <meta charset="utf-8">
-  <title>Bản đồ Rủi ro Cửa hàng</title>
-  
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YODY Risk Dashboard</title>
+
+  <!-- Leaflet & Fonts -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- PapaParse for CSV -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <style>
     :root {
-      --primary: #2563eb;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --bg-panel: rgba(255, 255, 255, 0.95);
-      --text: #1e293b;
-      --text-muted: #64748b;
+      --primary: #f8941d;
+      --primary-bg: #1a1a1a;
+      --glass-bg: rgba(26, 26, 26, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-main: #ffffff;
+      --text-dim: #b3b3b3;
+      --accent: #f8941d;
+      --danger: #ff4d4d;
+      --warning: #ffcc00;
+      --success: #00ff88;
     }
 
     * {
-      box-sizing: border-box;
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+      font-family: 'Outfit', sans-serif;
     }
 
     body {
-      font-family: 'Inter', sans-serif;
+      background: var(--primary-bg);
+      color: var(--text-main);
       height: 100vh;
-      width: 100vw;
       overflow: hidden;
+    }
+
+    /* --- LOADING SCREEN --- */
+    #loading {
+      position: fixed;
+      inset: 0;
+      z-index: 20000;
+      background: var(--primary-bg);
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid rgba(248, 148, 29, 0.1);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* --- LOGIN SCREEN --- */
+    #login-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 10000;
+      background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.5s ease;
+    }
+
+    .login-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      padding: 40px;
+      border-radius: 24px;
+      border: 1px solid var(--glass-border);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .login-logo {
+      width: 120px;
+      margin-bottom: 24px;
+      filter: drop-shadow(0 0 10px rgba(248, 148, 29, 0.3));
+    }
+
+    .login-card h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .login-card p {
+      font-size: 14px;
+      color: var(--text-dim);
+      margin-bottom: 32px;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 16px 20px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      color: white;
+      font-size: 16px;
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    .input-group input:focus {
+      border-color: var(--primary);
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 12px;
+      background: var(--primary);
+      color: #000;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s, opacity 0.2s;
+      box-shadow: 0 10px 20px rgba(248, 148, 29, 0.3);
+    }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+      opacity: 0.9;
+    }
+
+    .login-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #login-error {
+      color: var(--danger);
+      font-size: 13px;
+      margin-top: 16px;
+      display: none;
+    }
+
+    /* --- DASHBOARD UI --- */
+    #dashboard {
+      display: none;
+      height: 100vh;
+      position: relative;
     }
 
     #map {
-      flex: 1;
       height: 100%;
+      width: 100%;
       z-index: 1;
+      background: #0b0d10;
+    }
+
+    /* Header */
+    .header {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      background: var(--glass-bg);
+      backdrop-filter: blur(15px);
+      padding: 12px 24px;
+      border-radius: 16px;
+      border: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header img {
+      height: 32px;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .header .logout {
+      margin-left: 20px;
+      font-size: 12px;
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+
+    .header .logout:hover {
+      color: var(--danger);
     }
 
     /* Side Panel */
     #side-panel {
-      width: 0;
-      height: 100%;
-      background: var(--bg-panel);
-      backdrop-filter: blur(10px);
-      box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1);
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      bottom: 20px;
+      width: 380px;
       z-index: 1000;
-      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow-y: auto;
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      border-radius: 24px;
+      border: 1px solid var(--glass-border);
       display: flex;
       flex-direction: column;
+      overflow: hidden;
+      transform: translateX(450px);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
     }
 
     #side-panel.open {
-      width: 400px;
+      transform: translateX(0);
     }
 
     .panel-header {
-      padding: 24px;
-      border-bottom: 1px solid #e2e8f0;
-      position: sticky;
-      top: 0;
-      background: inherit;
-      z-index: 2;
+      padding: 32px;
+      border-bottom: 1px solid var(--glass-border);
+      position: relative;
     }
 
-    .close-btn {
+    .close-panel {
       position: absolute;
       top: 20px;
       right: 20px;
       cursor: pointer;
-      background: #f1f5f9;
-      border: none;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-muted);
-      transition: all 0.2s;
+      color: var(--text-dim);
     }
 
-    .close-btn:hover {
-      background: #e2e8f0;
-      color: var(--text);
-    }
-
-    .panel-content {
-      padding: 24px;
-    }
-
-    h2 {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: var(--text);
+    .panel-header h2 {
+      font-size: 24px;
+      color: var(--accent);
       margin-bottom: 4px;
     }
 
-    .address {
-      font-size: 0.875rem;
-      color: var(--text-muted);
-      margin-bottom: 16px;
+    .panel-header p {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.4;
     }
 
-    .badge {
-      display: inline-block;
-      padding: 4px 12px;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      margin-bottom: 20px;
+    .panel-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
     }
 
-    .badge-green { background: #d1fae5; color: #065f46; }
-    .badge-yellow { background: #fef3c7; color: #92400e; }
-    .badge-red { background: #fee2e2; color: #991b1b; }
-
-    .section-title {
-      font-size: 0.75rem;
-      font-weight: 700;
+    .section-label {
+      font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-      margin-top: 24px;
-      margin-bottom: 12px;
-    }
-
-    .highlight-box {
-      background: #f8fafc;
-      padding: 16px;
-      border-radius: 12px;
-      border-left: 4px solid var(--primary);
-      font-size: 0.9375rem;
-      line-height: 1.5;
-    }
-
-    .event-card {
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 16px;
+      letter-spacing: 2px;
+      color: var(--text-dim);
       margin-bottom: 16px;
-      transition: transform 0.2s;
+      display: block;
     }
 
-    .event-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    .event-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+
+    .event-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--accent);
+      transform: scale(1.02);
     }
 
     .event-type {
+      font-size: 12px;
       font-weight: 600;
-      font-size: 0.875rem;
-      margin-bottom: 8px;
-      color: var(--primary);
-    }
-
-    .transformed-detail {
-      font-size: 0.875rem;
-      color: var(--text);
-    }
-
-    .detail-item {
-      margin-bottom: 12px;
-    }
-
-    .detail-label {
-      font-weight: 600;
+      margin-bottom: 4px;
       display: block;
-      color: var(--text-muted);
-      font-size: 0.75rem;
-      margin-bottom: 2px;
-    }
-    
-    .lesson-highlight {
-      background: #fffbeb;
-      color: #92400e;
-      padding: 8px;
-      border-radius: 6px;
-      font-weight: 500;
-      margin-top: 8px;
     }
 
-    .btn-detail {
-        display: block;
-        width: 100%;
-        text-align: center;
-        background: var(--primary);
-        color: white;
-        padding: 12px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-        margin-top: 10px;
-        transition: opacity 0.2s;
+    .event-desc {
+      font-size: 14px;
+      color: var(--text-dim);
+      line-height: 1.5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .btn-detail:hover {
-        opacity: 0.9;
-    }
-
-    /* Custom Markers */
-    .marker-pin {
-      width: 24px;
-      height: 24px;
-      border-radius: 50% 50% 50% 0;
-      position: absolute;
-      transform: rotate(-45deg);
-      left: 50%;
-      top: 50%;
-      margin: -12px 0 0 -12px;
-      border: 2px solid white;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }
-
-    .marker-pin.green { background: var(--success); }
-    .marker-pin.yellow { background: var(--warning); }
-    .marker-pin.red { background: var(--danger); }
-
-    .loading-overlay {
+    /* Tooltip Box (Floating Detail) */
+    #detail-box {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      transition: opacity 0.5s;
+      z-index: 11000;
+      width: 320px;
+      background: rgba(30, 30, 30, 0.95);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--accent);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      transform: translateY(-50%);
     }
 
-    .spinner {
-      border: 4px solid #f3f3f3;
-      border-top: 4px solid var(--primary);
+    /* Pulsing Markers */
+    .pulse-marker {
+      position: relative;
+    }
+
+    .pulse-core {
+      width: 12px;
+      height: 12px;
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
+      border: 2px solid white;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .pulse-ring {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      animation: pulse 2s infinite ease-out;
+      opacity: 0;
     }
 
-    @media (max-width: 600px) {
-      #side-panel.open {
-        width: 100%;
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+        opacity: 0.8;
       }
+
+      100% {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    /* Leaflet Overrides */
+    .leaflet-container {
+      background: #0b0d10 !important;
+    }
+
+    .leaflet-control-zoom {
+      border: none !important;
+      margin: 20px !important;
+    }
+
+    .leaflet-control-zoom a {
+      background: var(--glass-bg) !important;
+      color: white !important;
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border) !important;
+      border-radius: 8px !important;
+      margin-bottom: 4px !important;
     }
   </style>
 </head>
+
 <body>
 
-  <div id="loading" class="loading-overlay">
+  <!-- Loading Screen -->
+  <div id="loading">
     <div class="spinner"></div>
-    <p style="margin-top: 16px; font-weight: 500;">Đang tải dữ liệu...</p>
+    <p id="loading-text">Đang kết nối hệ thống...</p>
   </div>
 
-  <div id="map"></div>
+  <!-- Login Screen -->
+  <div id="login-screen" style="display:none;">
+    <div class="login-card">
+      <img src="https://yody.vn/images/logo.png" class="login-logo" alt="YODY">
+      <h1>Risk Dashboard</h1>
+      <p>Vui lòng đăng nhập để tiếp tục</p>
 
-  <div id="side-panel">
-    <div class="panel-header">
-      <button class="close-btn" onclick="closePanel()">✕</button>
-      <h2 id="store-name">Tên cửa hàng</h2>
-      <p class="address" id="store-address">Địa chỉ...</p>
-      <div id="event-badge"></div>
-    </div>
-    
-    <div class="panel-content">
-      <div class="section-title">Điểm nổi bật</div>
-      <div class="highlight-box" id="store-highlights">
-        Không có thông tin.
+      <div class="input-group">
+        <input type="email" id="email-input" placeholder="Email@yody.vn" autocomplete="email">
       </div>
 
-      <div class="section-title" id="events-title">Danh sách rủi ro (0)</div>
-      <div id="events-container">
-        <!-- Events will be injected here -->
-      </div>
+      <button id="login-btn" class="login-btn" onclick="handleLogin()">ĐĂNG NHẬP</button>
+      <div id="login-error">Vui lòng nhập đúng email @yody.vn</div>
     </div>
   </div>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <!-- Dashboard -->
+  <div id="dashboard">
+    <div class="header">
+      <img src="https://yody.vn/images/logo.png" alt="YODY">
+      <h1>Risk Monitoring System</h1>
+      <div class="logout" onclick="logout()">Đăng xuất</div>
+    </div>
+
+    <div id="map"></div>
+
+    <div id="side-panel">
+      <div class="panel-header">
+        <div class="close-panel" onclick="closePanel()">✕</div>
+        <h2 id="p-store-name">Cửa hàng</h2>
+        <p id="p-store-address">Địa chỉ...</p>
+      </div>
+      <div class="panel-content">
+        <span class="section-label">Lịch sử sự kiện</span>
+        <div id="events-list">
+          <!-- Events here -->
+        </div>
+      </div>
+    </div>
+
+    <div id="detail-box">
+      <div id="box-type"
+        style="color:var(--accent); font-weight:700; font-size:12px; text-transform:uppercase; margin-bottom:8px;">
+      </div>
+      <div id="box-desc" style="font-size:14px; line-height:1.6; color:#efefef;"></div>
+    </div>
+  </div>
 
   <script>
-    let map;
-    let markers = [];
+    // --- CONFIGURATION ---
+    const SHEET_ID = '1wwjXmvOrNn4G7uNdAGPwwa2RpTvfYrRASzAD5PNpbEE';
+    const MAIL_SHEET_ID = '1Eea0RMfjsrv_JrCadKxdVWvYdsm14riZYtNcuUWOii0';
+    const GID_STORES = '0';
+    const GID_EVENTS = '484651391';
+    const GID_MAIL = '291208241';
 
-    function initMap() {
-      // Vietnam center
-      map = L.map('map', {
-          zoomControl: false
-      }).setView([14.0583, 108.2772], 6);
+    const CSV_STORES = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_STORES}`;
+    const CSV_EVENTS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_EVENTS}`;
+    const CSV_MAIL = `https://docs.google.com/spreadsheets/d/${MAIL_SHEET_ID}/export?format=csv&gid=${GID_MAIL}`;
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(map);
+    let map, markers = [];
+    let STORES_DATA = [];
+    let EVENTS_DATA = [];
 
-      L.control.zoom({ position: 'bottomleft' }).addTo(map);
+    // --- SESSION MGMT ---
+    window.onload = () => {
+      const email = localStorage.getItem('yody_user');
+      if (email) {
+        showDashboard();
+      } else {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('dashboard').style.display = 'none';
+      }
+    };
 
-      // Load data
-      google.script.run
-        .withSuccessHandler(onDataLoaded)
-        .withFailureHandler(err => {
-            console.error(err);
-            alert("Lỗi tải dữ liệu. Vui lòng thử lại.");
-        })
-        .getMapData();
-    }
+    async function handleLogin() {
+      const email = document.getElementById('email-input').value.trim().toLowerCase();
+      const btn = document.getElementById('login-btn');
+      const error = document.getElementById('login-error');
 
-    function onDataLoaded(dataString) {
-      const stores = JSON.parse(dataString);
-      const loading = document.getElementById('loading');
-      loading.style.opacity = '0';
-      setTimeout(() => loading.style.display = 'none', 500);
+      if (!email.endsWith('@yody.vn')) {
+        error.innerText = 'Chỉ chấp nhận email @yody.vn';
+        error.style.display = 'block';
+        return;
+      }
 
-      stores.forEach(store => {
-        const color = getMarkerColor(store.eventCount);
-        const icon = L.divIcon({
-          className: 'custom-div-icon',
-          html: `<div class='marker-pin ${color}'></div>`,
-          iconSize: [30, 42],
-          iconAnchor: [15, 42]
-        });
+      btn.disabled = true;
+      btn.innerText = 'ĐANG KIỂM TRA...';
 
-        const marker = L.marker([store.lat, store.lng], { icon: icon })
-          .addTo(map)
-          .on('click', () => showStoreDetails(store));
-        
-        markers.push(marker);
-      });
-      
-      // If only one store, focus on it. If many, fit bounds if needed.
-      if (markers.length > 0) {
-          const group = new L.featureGroup(markers);
-          // Only zoom if markers are present and spread out
-          // map.fitBounds(group.getBounds().pad(0.1));
+      try {
+        const whitelist = await fetchCSV(CSV_MAIL);
+        const isAuthorized = whitelist.some(row =>
+          Object.values(row).some(val => val.toString().toLowerCase().trim() === email)
+        );
+
+        if (isAuthorized) {
+          localStorage.setItem('yody_user', email);
+          showDashboard();
+        } else {
+          error.innerText = 'Email không có trong danh sách cấp quyền.';
+          error.style.display = 'block';
+          btn.disabled = false;
+          btn.innerText = 'ĐĂNG NHẬP';
+        }
+      } catch (e) {
+        console.error(e);
+        error.innerText = 'Lỗi kết nối Google Sheets. Hãy đảm bảo Sheet được cấu hình "Anyone with link can view".';
+        error.style.display = 'block';
+        btn.disabled = false;
+        btn.innerText = 'ĐĂNG NHẬP';
       }
     }
 
-    function getMarkerColor(count) {
-      if (count === 0) return 'green';
-      if (count === 1) return 'yellow';
-      return 'red';
+    function logout() {
+      localStorage.removeItem('yody_user');
+      window.location.reload();
     }
 
-    function showStoreDetails(store) {
-      document.getElementById('store-name').innerText = store.name;
-      document.getElementById('store-address').innerText = store.address;
-      document.getElementById('store-highlights').innerText = store.highlights || "Không có thông tin nổi bật.";
-      
-      const badgeContainer = document.getElementById('event-badge');
-      const badgeClass = store.eventCount === 0 ? 'badge-green' : (store.eventCount === 1 ? 'badge-yellow' : 'badge-red');
-      badgeContainer.innerHTML = `<span class="badge ${badgeClass}">${store.eventCount} sự kiện rủi ro</span>`;
+    // --- DASHBOARD LOGIC ---
+    async function showDashboard() {
+      document.getElementById('login-screen').style.opacity = '0';
+      setTimeout(() => document.getElementById('login-screen').style.display = 'none', 500);
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('loading').style.display = 'flex';
+      document.getElementById('loading-text').innerText = 'Đang tải bản đồ & dữ liệu...';
 
-      document.getElementById('events-title').innerText = `Danh sách rủi ro (${store.eventCount})`;
+      initMap();
+      await loadData();
 
-      const container = document.getElementById('events-container');
+      document.getElementById('loading').style.opacity = '0';
+      setTimeout(() => document.getElementById('loading').style.display = 'none', 500);
+    }
+
+    function initMap() {
+      if (map) return;
+      map = L.map('map', { zoomControl: false }).setView([16.0, 108.0], 6);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CartoDB'
+      }).addTo(map);
+      L.control.zoom({ position: 'bottomleft' }).addTo(map);
+    }
+
+    async function loadData() {
+      try {
+        STORES_DATA = await fetchCSV(CSV_STORES);
+        EVENTS_DATA = await fetchCSV(CSV_EVENTS);
+
+        STORES_DATA.forEach(store => {
+          const storeId = store.ID || store.id;
+          const storeEvents = EVENTS_DATA.filter(e => e.ID == storeId || e.Store_ID == storeId || e.storeId == storeId);
+          store.eventCount = storeEvents.length;
+          store.riskLevel = store.eventCount >= 5 ? 'high' : (store.eventCount >= 3 ? 'medium' : (store.eventCount >= 1 ? 'low' : 'none'));
+          renderMarker(store);
+        });
+      } catch (e) {
+        alert("Không thể tải dữ liệu từ Google Sheets. Hãy đảm bảo các Sheet đã được thiết lập 'Bất kỳ ai có liên kết đều có thể xem'.");
+      }
+    }
+
+    function renderMarker(store) {
+      const lat = parseFloat(store.Latitude || store.Lat || store.lat);
+      const lng = parseFloat(store.Longitude || store.Lng || store.lng);
+      if (isNaN(lat) || isNaN(lng)) return;
+
+      const color = store.riskLevel === 'high' ? 'var(--danger)' :
+        (store.riskLevel === 'medium' ? 'var(--warning)' :
+          (store.riskLevel === 'low' ? 'var(--accent)' : 'var(--success)'));
+
+      const icon = L.divIcon({
+        className: 'pulse-marker',
+        html: `
+                    <div class="pulse-ring" style="background:${color}"></div>
+                    <div class="pulse-core" style="background:${color}"></div>
+                `,
+        iconSize: [12, 12],
+        iconAnchor: [6, 6]
+      });
+
+      L.marker([lat, lng], { icon }).addTo(map)
+        .on('click', () => openPanel(store));
+    }
+
+    function openPanel(store) {
+      document.getElementById('p-store-name').innerText = store.Store_Name || store.Name || store.name;
+      document.getElementById('p-store-address').innerText = store.Address || store.address || 'Không rõ địa chỉ';
+
+      const container = document.getElementById('events-list');
       container.innerHTML = '';
 
-      if (store.events && store.events.length > 0) {
-        store.events.forEach(event => {
-          const card = document.createElement('div');
-          card.className = 'event-card';
-          
-          const transformed = transformDescription(event.description);
-          
-          card.innerHTML = `
-            <div class="event-type">${event.type || 'Sự kiện'} #${event.id}</div>
-            <div class="transformed-detail">
-              <div class="detail-item">
-                <span class="detail-label">Tình huống phát sinh:</span>
-                <div>${transformed.situation}</div>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Rủi ro tiềm ẩn:</span>
-                <div>${transformed.risk}</div>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Cách QTRR đã xử lý:</span>
-                <div>${transformed.action}</div>
-              </div>
-              <div class="lesson-highlight">
-                <span class="detail-label" style="color: inherit">Bài học rút ra:</span>
-                <div>${transformed.lesson}</div>
-              </div>
-              <div class="detail-item" style="margin-top: 8px">
-                <span class="detail-label">Cảnh báo:</span>
-                <div style="color: var(--danger); font-weight: 500;">${transformed.warning}</div>
-              </div>
-            </div>
-            <a href="#" class="btn-detail" onclick="alert('Xem chi tiết sự kiện ${event.id}')">Xem chi tiết</a>
-          `;
-          container.appendChild(card);
-        });
+      const storeId = store.ID || store.id;
+      const storeEvents = EVENTS_DATA.filter(e => e.ID == storeId || e.Store_ID == storeId || e.storeId == storeId);
+      if (storeEvents.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-dim); font-size:13px;">Không có rủi ro nào được ghi nhận.</p>';
       } else {
-        container.innerHTML = '<p style="color: var(--text-muted); font-size: 0.875rem;">Cửa hàng hiện tại không có ghi nhận rủi ro.</p>';
+        storeEvents.forEach(ev => {
+          const div = document.createElement('div');
+          div.className = 'event-item';
+          div.innerHTML = `
+                        <span class="event-type" style="color:${ev.Type === 'Violation' ? 'var(--danger)' : 'var(--success)'}">${ev.Type || 'Sự kiện'}</span>
+                        <div class="event-desc">${ev.Description || 'Không có mô tả'}</div>
+                    `;
+          div.onmouseenter = (e) => showDetail(ev, e);
+          div.onmouseleave = hideDetail;
+          container.appendChild(div);
+        });
       }
 
       document.getElementById('side-panel').classList.add('open');
@@ -414,40 +609,35 @@
       document.getElementById('side-panel').classList.remove('open');
     }
 
-    /**
-     * Logic to transform the raw description into structured keys.
-     * Note: This assumes some structure OR provides a polished fall-through.
-     */
-    function transformDescription(desc) {
-      // Default structure
-      const result = {
-        situation: 'Thông tin đang được cập nhật.',
-        risk: 'Đang đánh giá rủi ro.',
-        action: 'Đã xử lý theo quy trình.',
-        lesson: 'Cần tuân thủ quy định vận hành.',
-        warning: 'Lưu ý kiểm soát chặt chẽ.'
-      };
+    function showDetail(ev, e) {
+      const box = document.getElementById('detail-box');
+      document.getElementById('box-type').innerText = ev.Type || 'Chi tiết';
+      document.getElementById('box-desc').innerText = ev.Description || 'Không có dữ liệu';
 
-      if (!desc) return result;
-
-      // Logic: If the description contains keywords, split it.
-      // Otherwise, put the whole thing in 'situation'.
-      if (desc.includes('|') || desc.includes(';')) {
-          const parts = desc.split(/[|;]/);
-          if (parts[0]) result.situation = parts[0].trim();
-          if (parts[1]) result.risk = parts[1].trim();
-          if (parts[2]) result.action = parts[2].trim();
-          if (parts[3]) result.lesson = parts[3].trim();
-          if (parts[4]) result.warning = parts[4].trim();
-      } else {
-          result.situation = desc;
-      }
-
-      return result;
+      box.style.display = 'block';
+      box.style.opacity = '1';
+      let x = e.clientX - 350;
+      if (x < 10) x = 10;
+      box.style.left = x + 'px';
+      box.style.top = e.clientY + 'px';
     }
 
-    // Initialize
-    window.onload = initMap;
+    function hideDetail() {
+      document.getElementById('detail-box').style.opacity = '0';
+    }
+
+    function fetchCSV(url) {
+      return new Promise((resolve, reject) => {
+        Papa.parse(url, {
+          download: true,
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => resolve(results.data),
+          error: (err) => reject(err)
+        });
+      });
+    }
   </script>
 </body>
+
 </html>
