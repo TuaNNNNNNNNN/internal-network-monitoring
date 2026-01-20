@@ -362,6 +362,195 @@
       margin-top: 12px;
       display: none;
     }
+
+    /* Custom Popup & Modal */
+    .popup-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 9998;
+      display: none;
+    }
+
+    #custom-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      background: rgba(20, 25, 40, 0.98);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .popup-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+    }
+
+    .popup-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .popup-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .popup-header h3 {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+
+    .popup-header .address {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .popup-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 0 20px;
+      margin-top: 12px;
+    }
+
+    .popup-tab {
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px 8px 0 0;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .popup-tab.active {
+      background: rgba(255, 255, 255, 0.1);
+      border-bottom-color: transparent;
+    }
+
+    .popup-tab.violations:hover,
+    .popup-tab.violations.active {
+      background: rgba(244, 67, 54, 0.2);
+      border-color: #f44336;
+    }
+
+    .popup-tab.rewards:hover,
+    .popup-tab.rewards.active {
+      background: rgba(76, 175, 80, 0.2);
+      border-color: #4caf50;
+    }
+
+    .popup-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .item-card {
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .item-card:hover {
+      background: rgba(255, 67, 54, 0.1);
+      border-color: rgba(244, 67, 54, 0.5);
+      transform: translateX(4px);
+    }
+
+    .item-card .item-title {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 4px;
+      color: #f44336;
+    }
+
+    .item-card .item-preview {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    #detail-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 90%;
+      max-width: 600px;
+      max-height: 85vh;
+      background: rgba(15, 15, 30, 0.98);
+      backdrop-filter: blur(20px);
+      border: 2px solid #f44336;
+      border-radius: 16px;
+      z-index: 10000;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(244, 67, 54, 0.4);
+    }
+
+    .modal-header {
+      padding: 20px;
+      background: rgba(244, 67, 54, 0.1);
+      border-bottom: 1px solid rgba(244, 67, 54, 0.3);
+      position: relative;
+    }
+
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 6px;
+    }
+
+    .field-value {
+      font-size: 14px;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.9);
+    }
   </style>
 </head>
 
@@ -711,6 +900,89 @@
       });
     }
 
+    // Popup & Modal Functions
+    let currentStore = null;
+
+    function openStorePopup(store) {
+      currentStore = store;
+      document.getElementById('popup-store-name').textContent = store.Store_Name || 'Cửa hàng';
+      document.getElementById('popup-store-address').textContent = store.Address || '';
+      document.getElementById('tab-violations-count').textContent = store.violationCount || 0;
+      document.getElementById('tab-rewards-count').textContent = store.highlightCount || 0;
+
+      document.getElementById('popup-overlay').style.display = 'block';
+      document.getElementById('custom-popup').style.display = 'flex';
+
+      switchTab('violations');
+    }
+
+    function closePopup() {
+      document.getElementById('popup-overlay').style.display = 'none';
+      document.getElementById('custom-popup').style.display = 'none';
+      document.getElementById('detail-modal').style.display = 'none';
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.popup-tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.popup-tab.${tab}`).classList.add('active');
+
+      const body = document.getElementById('popup-body');
+      body.innerHTML = '';
+
+      const items = tab === 'violations' ? (currentStore.violations || []) : (currentStore.highlights || []);
+
+      if (items.length === 0) {
+        body.innerHTML = '<p style="color: rgba(255,255,255,0.5); font-size: 13px; text-align: center;">Không có dữ liệu</p>';
+        return;
+      }
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'item-card';
+
+        const cols = Object.values(item);
+        // Column mapping: 0: EventID, 2: Date, 4: Desc
+        const id = cols[0] || '';
+        const date = cols[2] ? new Date(cols[2]).toLocaleDateString('vi-VN') : '';
+        const desc = cols[4] || 'Không có mô tả';
+
+        card.innerHTML = `
+          <div class="item-title">${id} <span style="font-weight:400; color:rgba(255,255,255,0.5); float:right; font-size:11px;">${date}</span></div>
+          <div class="item-preview">${desc}</div>
+        `;
+
+        card.onclick = () => showDetail(item);
+        body.appendChild(card);
+      });
+    }
+
+    function showDetail(item) {
+      const modal = document.getElementById('detail-modal');
+      const body = document.getElementById('detail-body');
+
+      const cols = Object.values(item);
+      const keys = Object.keys(item);
+
+      let html = '';
+      keys.forEach((key, idx) => {
+        if (cols[idx] && cols[idx].toString().trim()) {
+          html += `
+            <div class="field">
+              <div class="field-label">${key}</div>
+              <div class="field-value">${cols[idx]}</div>
+            </div>
+          `;
+        }
+      });
+
+      body.innerHTML = html;
+      modal.style.display = 'flex';
+    }
+
+    function closeDetail() {
+      document.getElementById('detail-modal').style.display = 'none';
+    }
+
     function renderMarkers() {
       // Clear existing
       markers.forEach(m => map.removeLayer(m));
@@ -744,30 +1016,12 @@
 
         const marker = L.marker([lat, lng], { icon }).addTo(map);
 
-        // Build popup content
-        let popupContent = `
-                    <div style="min-width: 200px;">
-                        <strong>${store.Store_Name || 'Cửa hàng'}</strong><br>
-                        <small style="color: #666;">${store.Address || ''}</small><br>
-                        <div style="margin-top: 8px;">
-                            <span style="color: #f44336;">⚠️ Vi phạm: ${count}</span><br>
-                            <span style="color: #4caf50;">🏆 Khen thưởng: ${store.highlightCount || 0}</span>
-                        </div>
-                `;
+        // Use Custom Popup instead of bindPopup
+        marker.on('click', () => {
+          openStorePopup(store);
+          map.setView([lat, lng], 14); // Zoom in
+        });
 
-        if (store.violations && store.violations.length > 0) {
-          popupContent += '<div style="margin-top: 8px; border-top: 1px solid #ddd; padding-top: 8px;">';
-          popupContent += '<strong style="font-size: 11px;">Vi phạm gần nhất:</strong><br>';
-          store.violations.slice(0, 2).forEach(v => {
-            const desc = Object.values(v)[4] || ''; // Description is column 5
-            popupContent += `<small style="color: #666;">${desc.substring(0, 100)}...</small><br>`;
-          });
-          popupContent += '</div>';
-        }
-
-        popupContent += '</div>';
-
-        marker.bindPopup(popupContent);
         markers.push(marker);
       });
 
@@ -794,6 +1048,35 @@
       });
     }
   </script>
+
+  <!-- Custom Popup -->
+  <div class="popup-overlay" id="popup-overlay" onclick="closePopup()"></div>
+  <div id="custom-popup">
+    <div class="popup-header">
+      <button class="popup-close" onclick="closePopup()">✕</button>
+      <h3 id="popup-store-name"></h3>
+      <div class="address" id="popup-store-address"></div>
+    </div>
+    <div class="popup-tabs">
+      <div class="popup-tab violations active" onclick="switchTab('violations')">
+        ⚠️ Vi phạm (<span id="tab-violations-count">0</span>)
+      </div>
+      <div class="popup-tab rewards" onclick="switchTab('rewards')">
+        🏆 Khen thưởng (<span id="tab-rewards-count">0</span>)
+      </div>
+    </div>
+    <div class="popup-body" id="popup-body"></div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div id="detail-modal">
+    <div class="modal-header">
+      <button class="popup-close" onclick="closeDetail()">✕</button>
+      <h3 id="detail-title">Chi tiết vi phạm</h3>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+  </div>
+
 </body>
 
 </html>
