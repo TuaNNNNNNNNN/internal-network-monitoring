@@ -364,192 +364,72 @@
     }
 
     /* Custom Popup & Modal */
+    /* Map Sovereignty Labels */
+    .map-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+      white-space: nowrap;
+      pointer-events: none !important;
+    }
+
+    /* Store Names on Zoom */
+    .leaflet-tooltip {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      color: #fff;
+      font-weight: 600;
+      font-size: 12px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+      margin-top: -45px !important;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .show-names .leaflet-tooltip {
+      opacity: 1;
+    }
+
+    /* Custom Popup -> Right Sidebar */
     .popup-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 9998;
-      display: none;
+      display: none !important;
+      /* Disable overlay to allow map interaction */
     }
 
     #custom-popup {
       position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 90%;
-      max-width: 500px;
-      max-height: 80vh;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      /* Full height */
+      left: auto;
+      transform: translateX(100%);
+      /* Start hidden off-screen */
+      width: 400px;
+      max-width: 100%;
+      max-height: none;
       background: rgba(20, 25, 40, 0.98);
       backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 16px;
+      border-left: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 0;
       z-index: 9999;
-      display: none;
+      display: flex;
       flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+      box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
     }
 
-    .popup-header {
-      padding: 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      position: relative;
+    #custom-popup.open {
+      transform: translateX(0);
     }
 
     .popup-close {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      width: 32px;
-      height: 32px;
-      background: rgba(255, 255, 255, 0.1);
-      border: none;
-      border-radius: 50%;
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
-    }
-
-    .popup-close:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    .popup-header h3 {
-      font-size: 18px;
-      margin-bottom: 4px;
-    }
-
-    .popup-header .address {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    .popup-tabs {
-      display: flex;
-      gap: 8px;
-      padding: 0 20px;
-      margin-top: 12px;
-    }
-
-    .popup-tab {
-      padding: 8px 16px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 8px 8px 0 0;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-
-    .popup-tab.active {
-      background: rgba(255, 255, 255, 0.1);
-      border-bottom-color: transparent;
-    }
-
-    .popup-tab.violations:hover,
-    .popup-tab.violations.active {
-      background: rgba(244, 67, 54, 0.2);
-      border-color: #f44336;
-    }
-
-    .popup-tab.rewards:hover,
-    .popup-tab.rewards.active {
-      background: rgba(76, 175, 80, 0.2);
-      border-color: #4caf50;
-    }
-
-    .popup-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-    }
-
-    .item-card {
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
-      margin-bottom: 10px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .item-card:hover {
-      background: rgba(255, 67, 54, 0.1);
-      border-color: rgba(244, 67, 54, 0.5);
-      transform: translateX(4px);
-    }
-
-    .item-card .item-title {
-      font-weight: 600;
-      font-size: 13px;
-      margin-bottom: 4px;
-      color: #f44336;
-    }
-
-    .item-card .item-preview {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.7);
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    #detail-modal {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 90%;
-      max-width: 600px;
-      max-height: 85vh;
-      background: rgba(15, 15, 30, 0.98);
-      backdrop-filter: blur(20px);
-      border: 2px solid #f44336;
-      border-radius: 16px;
-      z-index: 10000;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(244, 67, 54, 0.4);
-    }
-
-    .modal-header {
-      padding: 20px;
-      background: rgba(244, 67, 54, 0.1);
-      border-bottom: 1px solid rgba(244, 67, 54, 0.3);
-      position: relative;
-    }
-
-    .modal-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-    }
-
-    .field {
-      margin-bottom: 16px;
-    }
-
-    .field-label {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: rgba(255, 255, 255, 0.5);
-      margin-bottom: 6px;
-    }
-
-    .field-value {
-      font-size: 14px;
-      line-height: 1.6;
-      color: rgba(255, 255, 255, 0.9);
+      top: 20px;
+      right: 20px;
     }
   </style>
 </head>
@@ -716,6 +596,33 @@
           style: { color: '#00ff88', weight: 2, fillOpacity: 0, opacity: 0.8 }
         }).addTo(map);
       } catch (e) { }
+
+      // Map Sovereignty Labels
+      const islands = [
+        { name: "Quần đảo Hoàng Sa", coords: [16.4, 112.0] },
+        { name: "Quần đảo Trường Sa", coords: [10.0, 114.0] }
+      ];
+
+      islands.forEach(island => {
+        L.marker(island.coords, {
+          icon: L.divIcon({
+            className: 'map-label',
+            html: island.name,
+            iconSize: [200, 20],
+            iconAnchor: [100, 10]
+          })
+        }).addTo(map);
+      });
+
+      // Zoom Listeners (Store Names)
+      map.on('zoomend', () => {
+        const zoom = map.getZoom();
+        if (zoom > 12) {
+          document.getElementById('map').classList.add('show-names');
+        } else {
+          document.getElementById('map').classList.remove('show-names');
+        }
+      });
 
       // Load Data
       await loadData();
@@ -888,11 +795,13 @@
                 `;
 
         // Click to zoom to marker
+        // Click to zoom to marker & open details
         item.onclick = () => {
           const lat = parseFloat(store.Latitude || 0);
           const lng = parseFloat(store.Longitude || 0);
           if (lat && lng) {
-            map.setView([lat, lng], 12);
+            map.setView([lat, lng], 16);
+            openStorePopup(store);
           }
         };
 
@@ -910,15 +819,16 @@
       document.getElementById('tab-violations-count').textContent = store.violationCount || 0;
       document.getElementById('tab-rewards-count').textContent = store.highlightCount || 0;
 
-      document.getElementById('popup-overlay').style.display = 'block';
-      document.getElementById('custom-popup').style.display = 'flex';
+      // Sidebar logic: add .open class, NO overlay
+      document.getElementById('custom-popup').classList.add('open');
+      // Ensure overlay is hidden just in case
+      document.getElementById('popup-overlay').style.display = 'none';
 
       switchTab('violations');
     }
 
     function closePopup() {
-      document.getElementById('popup-overlay').style.display = 'none';
-      document.getElementById('custom-popup').style.display = 'none';
+      document.getElementById('custom-popup').classList.remove('open');
       document.getElementById('detail-modal').style.display = 'none';
     }
 
@@ -1016,10 +926,18 @@
 
         const marker = L.marker([lat, lng], { icon }).addTo(map);
 
-        // Use Custom Popup instead of bindPopup
+        // Bind Tooltip for Store Name (visible on zoom)
+        marker.bindTooltip(store.Store_Name || 'Cửa hàng', {
+          permanent: true,
+          direction: 'top',
+          className: 'store-label-tooltip',
+          offset: [0, -16]
+        });
+
+        // Use Custom Popup -> Sidebar
         marker.on('click', () => {
           openStorePopup(store);
-          map.setView([lat, lng], 14); // Zoom in
+          map.setView([lat, lng], 16); // High zoom
         });
 
         markers.push(marker);
