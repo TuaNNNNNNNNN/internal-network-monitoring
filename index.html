@@ -4,64 +4,280 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Internal Network Monitoring</title>
+  <title>Thư viện Quản trị Rủi ro</title>
 
-  <!-- Leaflet & Fonts -->
+  <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <!-- PapaParse for CSV -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <style>
-    :root {
-      --primary: #f8941d;
-      --primary-bg: #1a1a1a;
-      --glass-bg: rgba(26, 26, 26, 0.7);
-      --glass-border: rgba(255, 255, 255, 0.1);
-      --text-main: #ffffff;
-      --text-dim: #b3b3b3;
-      --accent: #f8941d;
-      --danger: #ff4d4d;
-      --warning: #ffcc00;
-      --success: #00ff88;
-    }
-
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Outfit', sans-serif;
     }
 
     body {
-      background: var(--primary-bg);
-      color: var(--text-main);
-      height: 100vh;
+      font-family: 'Inter', sans-serif;
+      background: #0a0e27;
+      color: #fff;
       overflow: hidden;
+      height: 100vh;
     }
 
-    /* --- LOADING SCREEN --- */
+    /* Header */
+    .header {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .header h1 {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: -2px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 280px;
+      background: #151937;
+      z-index: 999;
+      overflow-y: auto;
+      padding: 20px;
+      padding-top: 80px;
+    }
+
+    .sidebar-section {
+      margin-bottom: 28px;
+    }
+
+    .sidebar-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    .filter-option {
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .filter-option:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(102, 126, 234, 0.5);
+    }
+
+    .filter-option.active {
+      background: rgba(102, 126, 234, 0.15);
+      border-color: #667eea;
+    }
+
+    .filter-radio {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .filter-option.active .filter-radio::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
+      background: #667eea;
+      border-radius: 50%;
+    }
+
+    .filter-label {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* Stats Cards */
+    .stat-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+
+    .stat-icon.stores {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .stat-icon.violations {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .stat-icon.rewards {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .stat-content {
+      flex: 1;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+    }
+
+    /* Risk Gradient */
+    .risk-gradient {
+      height: 8px;
+      background: linear-gradient(90deg, #00ff88 0%, #ffeb3b 25%, #ff9800 50%, #f44336 100%);
+      border-radius: 4px;
+      margin-top: 8px;
+    }
+
+    .risk-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Map */
+    #map {
+      position: absolute;
+      left: 280px;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      background: #0a0e27;
+    }
+
+    .leaflet-container {
+      background: #0a0e27 !important;
+    }
+
+    /* Numbered Markers */
+    .marker-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 3px solid #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: #000;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .marker-green {
+      background: #00ff88;
+    }
+
+    .marker-yellow {
+      background: #ffeb3b;
+    }
+
+    .marker-orange {
+      background: #ff9800;
+    }
+
+    .marker-red {
+      background: #f44336;
+      color: #fff;
+    }
+
+    /* Loading */
     #loading {
       position: fixed;
       inset: 0;
-      z-index: 20000;
-      background: var(--primary-bg);
+      background: #0a0e27;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
+      z-index: 9999;
+      flex-direction: column;
+      gap: 16px;
     }
 
     .spinner {
-      width: 48px;
-      height: 48px;
-      border: 3px solid rgba(248, 148, 29, 0.1);
-      border-top-color: var(--primary);
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(102, 126, 234, 0.2);
+      border-top-color: #667eea;
       border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 20px;
+      animation: spin 0.8s linear infinite;
     }
 
     @keyframes spin {
@@ -70,419 +286,218 @@
       }
     }
 
-    /* --- LOGIN SCREEN --- */
+    /* Login Screen */
     #login-screen {
       position: fixed;
       inset: 0;
-      z-index: 10000;
-      background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-      display: flex;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: none;
       align-items: center;
       justify-content: center;
-      transition: opacity 0.5s ease;
+      z-index: 10000;
     }
 
-    .login-card {
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
+    .login-box {
+      background: #fff;
       padding: 40px;
-      border-radius: 24px;
-      border: 1px solid var(--glass-border);
+      border-radius: 16px;
       width: 100%;
       max-width: 400px;
       text-align: center;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     }
 
-    .login-logo {
-      width: 120px;
-      margin-bottom: 24px;
-      filter: drop-shadow(0 0 10px rgba(248, 148, 29, 0.3));
-    }
-
-    .login-card h1 {
-      font-size: 24px;
+    .login-box h2 {
+      color: #667eea;
       margin-bottom: 8px;
-      font-weight: 700;
-      color: var(--primary);
+      font-size: 24px;
     }
 
-    .login-card p {
-      font-size: 14px;
-      color: var(--text-dim);
-      margin-bottom: 32px;
-    }
-
-    .input-group {
-      position: relative;
+    .login-box p {
+      color: #666;
       margin-bottom: 24px;
+      font-size: 14px;
     }
 
-    .input-group input {
+    .login-input {
       width: 100%;
-      padding: 16px 20px;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--glass-border);
-      color: white;
-      font-size: 16px;
+      padding: 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 15px;
+      margin-bottom: 16px;
       outline: none;
-      transition: all 0.3s;
+      transition: border-color 0.2s;
     }
 
-    .input-group input:focus {
-      border-color: var(--primary);
-      background: rgba(255, 255, 255, 0.1);
+    .login-input:focus {
+      border-color: #667eea;
     }
 
     .login-btn {
       width: 100%;
-      padding: 16px;
-      border-radius: 12px;
-      background: var(--primary);
-      color: #000;
-      font-weight: 700;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
       cursor: pointer;
-      transition: transform 0.2s, opacity 0.2s;
-      box-shadow: 0 10px 20px rgba(248, 148, 29, 0.3);
+      transition: transform 0.2s;
     }
 
     .login-btn:hover {
       transform: translateY(-2px);
-      opacity: 0.9;
     }
 
     .login-btn:disabled {
-      opacity: 0.5;
+      opacity: 0.6;
       cursor: not-allowed;
     }
 
-    #login-error {
-      color: var(--danger);
+    .login-error {
+      color: #f44336;
       font-size: 13px;
-      margin-top: 16px;
+      margin-top: 12px;
       display: none;
-    }
-
-    /* --- DASHBOARD UI --- */
-    #dashboard {
-      display: none;
-      height: 100vh;
-      position: relative;
-    }
-
-    #map {
-      height: 100%;
-      width: 100%;
-      z-index: 1;
-      background: #0b0d10;
-    }
-
-    /* Header */
-    .header {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      z-index: 1000;
-      background: var(--glass-bg);
-      backdrop-filter: blur(15px);
-      padding: 12px 24px;
-      border-radius: 16px;
-      border: 1px solid var(--glass-border);
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .header img {
-      height: 32px;
-    }
-
-    .header h1 {
-      font-size: 18px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .header .logout {
-      margin-left: 20px;
-      font-size: 12px;
-      color: var(--text-dim);
-      cursor: pointer;
-    }
-
-    .header .logout:hover {
-      color: var(--danger);
-    }
-
-    /* Side Panel */
-    #side-panel {
-      position: absolute;
-      right: 20px;
-      top: 20px;
-      bottom: 20px;
-      width: 380px;
-      z-index: 1000;
-      background: var(--glass-bg);
-      backdrop-filter: blur(25px);
-      border-radius: 24px;
-      border: 1px solid var(--glass-border);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      transform: translateX(450px);
-      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: -10px 0 30px rgba(0, 0, 0, 0.3);
-    }
-
-    #side-panel.open {
-      transform: translateX(0);
-    }
-
-    .panel-header {
-      padding: 32px;
-      border-bottom: 1px solid var(--glass-border);
-      position: relative;
-    }
-
-    .close-panel {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      cursor: pointer;
-      color: var(--text-dim);
-    }
-
-    .panel-header h2 {
-      font-size: 24px;
-      color: var(--accent);
-      margin-bottom: 4px;
-    }
-
-    .panel-header p {
-      font-size: 14px;
-      color: var(--text-dim);
-      line-height: 1.4;
-    }
-
-    .panel-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 24px;
-    }
-
-    .section-label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: var(--text-dim);
-      margin-bottom: 16px;
-      display: block;
-    }
-
-    .event-item {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--glass-border);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 12px;
-      cursor: pointer;
-      transition: all 0.3s;
-      position: relative;
-    }
-
-    .event-item:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: var(--accent);
-      transform: scale(1.02);
-    }
-
-    .event-type {
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 4px;
-      display: block;
-    }
-
-    .event-desc {
-      font-size: 14px;
-      color: var(--text-dim);
-      line-height: 1.5;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Tooltip Box (Floating Detail) */
-    #detail-box {
-      position: fixed;
-      z-index: 11000;
-      width: 320px;
-      background: rgba(30, 30, 30, 0.95);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--accent);
-      border-radius: 16px;
-      padding: 20px;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.3s, transform 0.3s;
-      transform: translateY(-50%);
-    }
-
-    /* Pulsing Markers */
-    .pulse-marker {
-      position: relative;
-    }
-
-    .pulse-core {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      border: 2px solid white;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    }
-
-    .pulse-ring {
-      position: absolute;
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      animation: pulse 2s infinite ease-out;
-      opacity: 0;
-    }
-
-    @keyframes pulse {
-      0% {
-        transform: scale(1);
-        opacity: 0.8;
-      }
-
-      100% {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
-
-    /* Leaflet Overrides */
-    .leaflet-container {
-      background: #0b0d10 !important;
-    }
-
-    .leaflet-control-zoom {
-      border: none !important;
-      margin: 20px !important;
-    }
-
-    .leaflet-control-zoom a {
-      background: var(--glass-bg) !important;
-      color: white !important;
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--glass-border) !important;
-      border-radius: 8px !important;
-      margin-bottom: 4px !important;
     }
   </style>
 </head>
 
 <body>
 
-  <!-- Loading Screen -->
+  <!-- Loading -->
   <div id="loading">
     <div class="spinner"></div>
-    <p id="loading-text">Đang kết nối hệ thống...</p>
+    <p>Đang tải dữ liệu...</p>
   </div>
 
-  <!-- Login Screen -->
-  <div id="login-screen" style="display:none;">
-    <div class="login-card">
-      <div style="font-size: 40px; margin-bottom: 10px;">🛡️</div>
-      <h1>Network Monitoring</h1>
-      <p>Hệ thống giám sát mạng lưới nội bộ</p>
-
-      <div class="input-group">
-        <input type="email" id="email-input" placeholder="Email@yody.vn" autocomplete="email">
-      </div>
-
-      <button id="login-btn" class="login-btn" onclick="handleLogin()">ĐĂNG NHẬP</button>
-      <div id="login-error">Vui lòng nhập đúng email @yody.vn</div>
+  <!-- Login -->
+  <div id="login-screen">
+    <div class="login-box">
+      <h2>🛡️ Đăng nhập</h2>
+      <p>Hệ thống giám sát rủi ro nội bộ</p>
+      <input type="email" class="login-input" id="email-input" placeholder="Email@yody.vn">
+      <button class="login-btn" onclick="handleLogin()">Đăng nhập</button>
+      <div class="login-error" id="login-error"></div>
     </div>
   </div>
 
-  <!-- Dashboard -->
-  <div id="dashboard">
-    <div class="header">
-      <div style="font-size: 24px;">🛡️</div>
-      <h1>Monitoring System</h1>
-      <div class="logout" onclick="logout()">Đăng xuất</div>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-icon">Y</div>
+    <div>
+      <h1>Thư viện Quản trị Rủi ro</h1>
+      <div class="header-subtitle">Hệ thống giám sát và phân tích vi phạm toàn diện</div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Bộ lọc thời gian</div>
+      <div class="filter-option active" onclick="setTimeFilter('all')">
+        <div class="filter-radio"></div>
+        <div class="filter-label">Tất cả</div>
+      </div>
+      <div class="filter-option" onclick="setTimeFilter('month')">
+        <div class="filter-radio"></div>
+        <div class="filter-label">Tháng này</div>
+      </div>
+      <div class="filter-option" onclick="setTimeFilter('week')">
+        <div class="filter-radio"></div>
+        <div class="filter-label">7 ngày qua</div>
+      </div>
     </div>
 
-    <div id="map"></div>
-
-    <div id="side-panel">
-      <div class="panel-header">
-        <div class="close-panel" onclick="closePanel()">✕</div>
-        <h2 id="p-store-name">Cửa hàng</h2>
-        <p id="p-store-address">Địa chỉ...</p>
+    <div class="sidebar-section">
+      <div class="sidebar-title">Loại hiển thị</div>
+      <div class="filter-option active" onclick="setDisplayFilter('all')">
+        <div class="filter-radio"></div>
+        <div class="filter-label">Tất cả cửa hàng</div>
       </div>
-      <div class="panel-content">
-        <span class="section-label">Lịch sử sự kiện</span>
-        <div id="events-list">
-          <!-- Events here -->
+      <div class="filter-option" onclick="setDisplayFilter('violations')">
+        <div class="filter-radio"></div>
+        <div class="filter-label">Có vi phạm</div>
+      </div>
+      <div class="filter-option" onclick="setDisplayFilter('clean')">
+        <div class="filter-radio"></div>
+        <div class="filter-label">Không vi phạm</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Thống kê tổng quan</div>
+      <div class="stat-card">
+        <div class="stat-icon stores">🏪</div>
+        <div class="stat-content">
+          <div class="stat-value" id="total-stores">0</div>
+          <div class="stat-label">Cửa hàng</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon violations">⚠️</div>
+        <div class="stat-content">
+          <div class="stat-value" id="total-violations">0</div>
+          <div class="stat-label">Vi phạm</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon rewards">🏆</div>
+        <div class="stat-content">
+          <div class="stat-value" id="total-rewards">0</div>
+          <div class="stat-label">Khen thưởng</div>
         </div>
       </div>
     </div>
 
-    <div id="detail-box">
-      <div id="box-type"
-        style="color:var(--accent); font-weight:700; font-size:12px; text-transform:uppercase; margin-bottom:8px;">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Chỉ tiêu mức độ</div>
+      <div class="risk-gradient"></div>
+      <div class="risk-labels">
+        <span>0 vi phạm</span>
+        <span>1-2</span>
+        <span>3-4</span>
+        <span>5+</span>
       </div>
-      <div id="box-desc" style="font-size:14px; line-height:1.6; color:#efefef;"></div>
     </div>
   </div>
 
+  <!-- Map -->
+  <div id="map"></div>
+
   <script>
-    // --- CONFIGURATION ---
+    // Config
     const SHEET_ID = '1wwjXmvOrNn4G7uNdAGPwwa2RpTvfYrRASzAD5PNpbEE';
     const MAIL_SHEET_ID = '1Eea0RMfjsrv_JrCadKxdVWvYdsm14riZYtNcuUWOii0';
-    const GID_STORES = '0';
-    const GID_EVENTS = '484651391';
-    const GID_MAIL = '291208241';
+    const CSV_STORES = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+    const CSV_EVENTS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=484651391`;
+    const CSV_MAIL = `https://docs.google.com/spreadsheets/d/${MAIL_SHEET_ID}/export?format=csv&gid=291208241`;
 
-    const CSV_STORES = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_STORES}`;
-    const CSV_EVENTS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID_EVENTS}`;
-    const CSV_MAIL = `https://docs.google.com/spreadsheets/d/${MAIL_SHEET_ID}/export?format=csv&gid=${GID_MAIL}`;
+    let map, STORES_DATA = [], EVENTS_DATA = [], markers = [];
+    let currentTimeFilter = 'all', currentDisplayFilter = 'all';
 
-    let map, markers = [];
-    let STORES_DATA = [];
-    let EVENTS_DATA = [];
-
-    // --- SESSION MGMT ---
+    // Session Check
     window.onload = () => {
       const email = localStorage.getItem('yody_user');
       if (email) {
-        showDashboard();
+        initDashboard();
       } else {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('login-screen').style.display = 'flex';
-        document.getElementById('dashboard').style.display = 'none';
       }
     };
 
     async function handleLogin() {
       const email = document.getElementById('email-input').value.trim().toLowerCase();
-      const btn = document.getElementById('login-btn');
       const error = document.getElementById('login-error');
 
       if (!email.endsWith('@yody.vn')) {
-        error.innerText = 'Chỉ chấp nhận email @yody.vn';
+        error.textContent = 'Chỉ chấp nhận email @yody.vn';
         error.style.display = 'block';
         return;
       }
-
-      btn.disabled = true;
-      btn.innerText = 'ĐANG KIỂM TRA...';
 
       try {
         const whitelist = await fetchCSV(CSV_MAIL);
@@ -492,204 +507,120 @@
 
         if (isAuthorized) {
           localStorage.setItem('yody_user', email);
-          showDashboard();
+          location.reload();
         } else {
-          error.innerText = 'Email không có trong danh sách cấp quyền.';
+          error.textContent = 'Email không có quyền truy cập';
           error.style.display = 'block';
-          btn.disabled = false;
-          btn.innerText = 'ĐĂNG NHẬP';
         }
       } catch (e) {
-        console.error(e);
-        error.innerText = 'Lỗi kết nối Google Sheets. Hãy đảm bảo Sheet được cấu hình "Anyone with link can view".';
+        error.textContent = 'Lỗi kết nối';
         error.style.display = 'block';
-        btn.disabled = false;
-        btn.innerText = 'ĐĂNG NHẬP';
       }
     }
 
-    function logout() {
-      localStorage.removeItem('yody_user');
-      window.location.reload();
-    }
-
-    // --- DASHBOARD LOGIC ---
-    async function showDashboard() {
-      document.getElementById('login-screen').style.opacity = '0';
-      setTimeout(() => document.getElementById('login-screen').style.display = 'none', 500);
-      document.getElementById('dashboard').style.display = 'block';
+    async function initDashboard() {
+      document.getElementById('login-screen').style.display = 'none';
       document.getElementById('loading').style.display = 'flex';
-      document.getElementById('loading-text').innerText = 'Đang tải bản đồ & dữ liệu...';
 
-      initMap();
-      // Setup Vietnam Highlight & Dimming
-      await setupVietnamBoundaries();
-      await loadData();
-
-      document.getElementById('loading').style.opacity = '0';
-      setTimeout(() => document.getElementById('loading').style.display = 'none', 500);
-    }
-
-    function initMap() {
-      if (map) return;
-      // Focused on Vietnam central
-      map = L.map('map', {
-        zoomControl: false,
-        attributionControl: false,
-        maxZoom: 18,
-        minZoom: 4
-      }).setView([16.0, 107.5], 6);
-
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; CartoDB'
-      }).addTo(map);
-
+      // Init Map
+      map = L.map('map', { zoomControl: false }).setView([16.0, 107.5], 6);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
       L.control.zoom({ position: 'bottomleft' }).addTo(map);
-    }
 
-    async function setupVietnamBoundaries() {
+      // Load Vietnam Border
       try {
         const response = await fetch('https://cdn.jsdelivr.net/gh/Vizzuality/growasia_calculator@master/public/vietnam.geojson');
         const vnGeoJSON = await response.json();
-
-        // 1. Highlight Border
         L.geoJSON(vnGeoJSON, {
-          style: {
-            color: '#00ff88', // Bright green for border
-            weight: 4,
-            fillOpacity: 0,
-            opacity: 1
-          }
+          style: { color: '#00ff88', weight: 2, fillOpacity: 0, opacity: 0.8 }
         }).addTo(map);
+      } catch (e) { }
 
-        // 2. Dim Surroundings (World Mask)
-        const latlngs = [
-          [[-90, -180], [-90, 180], [90, 180], [90, -180]] // Outer ring: The World
-        ];
+      // Load Data
+      await loadData();
 
-        // Add Vietnam as inner rings (holes)
-        vnGeoJSON.features.forEach(feature => {
-          if (feature.geometry.type === 'Polygon') {
-            latlngs.push(feature.geometry.coordinates[0].map(c => [c[1], c[0]]));
-          } else if (feature.geometry.type === 'MultiPolygon') {
-            feature.geometry.coordinates.forEach(poly => {
-              latlngs.push(poly[0].map(c => [c[1], c[0]]));
-            });
-          }
-        });
-
-        const mask = L.polygon(latlngs, {
-          color: 'transparent',
-          fillColor: '#000',
-          fillOpacity: 0.75, // Darker mask for better contrast
-          interactive: false
-        }).addTo(map);
-
-      } catch (e) {
-        console.error("GeoJSON Error:", e);
-      }
+      document.getElementById('loading').style.display = 'none';
     }
 
     async function loadData() {
-      try {
-        STORES_DATA = await fetchCSV(CSV_STORES);
-        EVENTS_DATA = await fetchCSV(CSV_EVENTS);
+      STORES_DATA = await fetchCSV(CSV_STORES);
+      EVENTS_DATA = await fetchCSV(CSV_EVENTS);
 
-        STORES_DATA.forEach(store => {
-          const storeId = store.ID || store.id || store.Store_ID || store.storeId;
-          const storeEvents = EVENTS_DATA.filter(e => {
-            const eSId = e.ID || e.Store_ID || e.storeId || e['Mã cửa hàng'];
-            return eSId == storeId;
-          });
-
-          store.eventCount = storeEvents.length;
-          store.riskLevel = store.eventCount >= 5 ? 'high' : (store.eventCount >= 3 ? 'medium' : (store.eventCount >= 1 ? 'low' : 'none'));
-          renderMarker(store);
+      // Calculate stats
+      STORES_DATA.forEach(store => {
+        const storeId = store.ID || store.id || store.Store_ID;
+        const storeEvents = EVENTS_DATA.filter(e => {
+          const eventStoreId = e.ID || e.Store_ID || e.storeId || e['Mã cửa hàng'];
+          return eventStoreId == storeId;
         });
-      } catch (e) {
-        console.error("Load Data Error:", e);
-        alert("Không thể tải dữ liệu từ Google Sheets. Hãy đảm bảo các Sheet đã được thiết lập 'Bất kỳ ai có liên kết đều có thể xem'.");
-      }
-    }
-
-    function renderMarker(store) {
-      // Robust coord detection
-      let lat = parseFloat(store.Latitude || store.Lat || store.lat || store['Vĩ độ']);
-      let lng = parseFloat(store.Longitude || store.Lng || store.lng || store['Kinh độ']);
-
-      // Check if coordinates are swapped (Vietnam: Lat ~8-23, Lng ~102-110)
-      if (lat > 100 && lng < 30) {
-        [lat, lng] = [lng, lat];
-      }
-
-      if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) return;
-
-      const color = store.riskLevel === 'high' ? 'var(--danger)' :
-        (store.riskLevel === 'medium' ? 'var(--warning)' :
-          (store.riskLevel === 'low' ? 'var(--accent)' : 'var(--success)'));
-
-      const icon = L.divIcon({
-        className: 'pulse-marker',
-        html: `
-                    <div class="pulse-ring" style="background:${color}"></div>
-                    <div class="pulse-core" style="background:${color}"></div>
-                `,
-        iconSize: [12, 12],
-        iconAnchor: [6, 6]
+        store.violationCount = storeEvents.length;
       });
 
-      const marker = L.marker([lat, lng], { icon }).addTo(map);
-      marker.on('click', () => openPanel(store));
-      markers.push(marker);
+      updateStats();
+      renderMarkers();
     }
 
-    function openPanel(store) {
-      document.getElementById('p-store-name').innerText = store.Store_Name || store.Name || store.name;
-      document.getElementById('p-store-address').innerText = store.Address || store.address || 'Không rõ địa chỉ';
+    function updateStats() {
+      const totalStores = STORES_DATA.length;
+      const totalViolations = STORES_DATA.reduce((sum, s) => sum + (s.violationCount || 0), 0);
 
-      const container = document.getElementById('events-list');
-      container.innerHTML = '';
+      document.getElementById('total-stores').textContent = totalStores;
+      document.getElementById('total-violations').textContent = totalViolations;
+      document.getElementById('total-rewards').textContent = '0';
+    }
 
-      const storeId = store.ID || store.id;
-      const storeEvents = EVENTS_DATA.filter(e => e.ID == storeId || e.Store_ID == storeId || e.storeId == storeId);
-      if (storeEvents.length === 0) {
-        container.innerHTML = '<p style="color:var(--text-dim); font-size:13px;">Không có rủi ro nào được ghi nhận.</p>';
-      } else {
-        storeEvents.forEach(ev => {
-          const div = document.createElement('div');
-          div.className = 'event-item';
-          div.innerHTML = `
-                        <span class="event-type" style="color:${ev.Type === 'Violation' ? 'var(--danger)' : 'var(--success)'}">${ev.Type || 'Sự kiện'}</span>
-                        <div class="event-desc">${ev.Description || 'Không có mô tả'}</div>
-                    `;
-          div.onmouseenter = (e) => showDetail(ev, e);
-          div.onmouseleave = hideDetail;
-          container.appendChild(div);
+    function renderMarkers() {
+      // Clear existing
+      markers.forEach(m => map.removeLayer(m));
+      markers = [];
+
+      STORES_DATA.forEach(store => {
+        // Filter logic
+        if (currentDisplayFilter === 'violations' && (!store.violationCount || store.violationCount === 0)) return;
+        if (currentDisplayFilter === 'clean' && store.violationCount && store.violationCount > 0) return;
+
+        let lat = parseFloat(store.Latitude || store.Lat || store.lat || store['Vĩ độ']);
+        let lng = parseFloat(store.Longitude || store.Lng || store.lng || store['Kinh độ']);
+
+        // Swap if needed
+        if (lat > 100 && lng < 30) [lat, lng] = [lng, lat];
+        if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) return;
+
+        const count = store.violationCount || 0;
+        const markerColor = count === 0 ? 'marker-green' :
+          count <= 2 ? 'marker-yellow' :
+            count <= 4 ? 'marker-orange' : 'marker-red';
+
+        const icon = L.divIcon({
+          className: 'custom-marker',
+          html: `<div class="marker-circle ${markerColor}">${count}</div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
         });
-      }
 
-      document.getElementById('side-panel').classList.add('open');
+        const marker = L.marker([lat, lng], { icon }).addTo(map);
+        marker.bindPopup(`
+                    <strong>${store.Store_Name || store.Name || 'Cửa hàng'}</strong><br>
+                    <small>${store.Address || ''}</small><br>
+                    Vi phạm: ${count}
+                `);
+        markers.push(marker);
+      });
     }
 
-    function closePanel() {
-      document.getElementById('side-panel').classList.remove('open');
+    function setTimeFilter(filter) {
+      currentTimeFilter = filter;
+      document.querySelectorAll('.sidebar-section:nth-child(1) .filter-option').forEach((el, i) => {
+        el.classList.toggle('active', ['all', 'month', 'week'][i] === filter);
+      });
     }
 
-    function showDetail(ev, e) {
-      const box = document.getElementById('detail-box');
-      document.getElementById('box-type').innerText = ev.Type || 'Chi tiết';
-      document.getElementById('box-desc').innerText = ev.Description || 'Không có dữ liệu';
-
-      box.style.display = 'block';
-      box.style.opacity = '1';
-      let x = e.clientX - 350;
-      if (x < 10) x = 10;
-      box.style.left = x + 'px';
-      box.style.top = e.clientY + 'px';
-    }
-
-    function hideDetail() {
-      document.getElementById('detail-box').style.opacity = '0';
+    function setDisplayFilter(filter) {
+      currentDisplayFilter = filter;
+      document.querySelectorAll('.sidebar-section:nth-child(2) .filter-option').forEach((el, i) => {
+        el.classList.toggle('active', ['all', 'violations', 'clean'][i] === filter);
+      });
+      renderMarkers();
     }
 
     function fetchCSV(url) {
