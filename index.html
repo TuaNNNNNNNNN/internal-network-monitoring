@@ -522,6 +522,8 @@
       document.getElementById('loading-text').innerText = 'Đang tải bản đồ & dữ liệu...';
 
       initMap();
+      // Setup Vietnam Highlight & Dimming
+      await setupVietnamBoundaries();
       await loadData();
 
       document.getElementById('loading').style.opacity = '0';
@@ -530,11 +532,62 @@
 
     function initMap() {
       if (map) return;
-      map = L.map('map', { zoomControl: false }).setView([16.0, 108.0], 6);
+      // Focused on Vietnam central
+      map = L.map('map', {
+        zoomControl: false,
+        attributionControl: false,
+        maxZoom: 18,
+        minZoom: 4
+      }).setView([16.0, 107.5], 6);
+
       L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; CartoDB'
       }).addTo(map);
+
       L.control.zoom({ position: 'bottomleft' }).addTo(map);
+    }
+
+    async function setupVietnamBoundaries() {
+      try {
+        const response = await fetch('https://cdn.jsdelivr.net/gh/Vizzuality/growasia_calculator@master/public/vietnam.geojson');
+        const vnGeoJSON = await response.json();
+
+        // 1. Highlight Border
+        L.geoJSON(vnGeoJSON, {
+          style: {
+            color: 'var(--accent)',
+            weight: 3,
+            fillOpacity: 0,
+            opacity: 0.8
+          }
+        }).addTo(map);
+
+        // 2. Dim Surroundings (World Mask)
+        const latlngs = [
+          [[-90, -180], [-90, 180], [90, 180], [90, -180]] // Outer ring: The World
+        ];
+
+        // Add Vietnam as inner rings (holes)
+        vnGeoJSON.features.forEach(feature => {
+          if (feature.geometry.type === 'Polygon') {
+            latlngs.push(feature.geometry.coordinates[0].map(c => [c[1], c[0]]));
+          } else if (feature.geometry.type === 'MultiPolygon') {
+            feature.geometry.coordinates.forEach(poly => {
+              latlngs.push(poly[0].map(c => [c[1], c[0]]));
+            });
+          }
+        });
+
+        const mask = L.polygon(latlngs, {
+          color: 'transparent',
+          fillColor: '#000',
+          fillOpacity: 0.6,
+          interactive: false
+        }).addTo(map);
+
+      } catch (e) {
+        console.error("GeoJSON Error:", e);
+      }
     }
 
     async function loadData() {
@@ -543,21 +596,33 @@
         EVENTS_DATA = await fetchCSV(CSV_EVENTS);
 
         STORES_DATA.forEach(store => {
-          const storeId = store.ID || store.id;
-          const storeEvents = EVENTS_DATA.filter(e => e.ID == storeId || e.Store_ID == storeId || e.storeId == storeId);
+          const storeId = store.ID || store.id || store.Store_ID || store.storeId;
+          const storeEvents = EVENTS_DATA.filter(e => {
+            const eSId = e.ID || e.Store_ID || e.storeId || e['Mã cửa hàng'];
+            return eSId == storeId;
+          });
+
           store.eventCount = storeEvents.length;
           store.riskLevel = store.eventCount >= 5 ? 'high' : (store.eventCount >= 3 ? 'medium' : (store.eventCount >= 1 ? 'low' : 'none'));
           renderMarker(store);
         });
       } catch (e) {
+        console.error("Load Data Error:", e);
         alert("Không thể tải dữ liệu từ Google Sheets. Hãy đảm bảo các Sheet đã được thiết lập 'Bất kỳ ai có liên kết đều có thể xem'.");
       }
     }
 
     function renderMarker(store) {
-      const lat = parseFloat(store.Latitude || store.Lat || store.lat);
-      const lng = parseFloat(store.Longitude || store.Lng || store.lng);
-      if (isNaN(lat) || isNaN(lng)) return;
+      // Robust coord detection
+      let lat = parseFloat(store.Latitude || store.Lat || store.lat || store['Vĩ độ']);
+      let lng = parseFloat(store.Longitude || store.Lng || store.lng || store['Kinh độ']);
+
+      // Check if coordinates are swapped (Vietnam: Lat ~8-23, Lng ~102-110)
+      if (lat > 100 && lng < 30) {
+        [lat, lng] = [lng, lat];
+      }
+
+      if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) return;
 
       const color = store.riskLevel === 'high' ? 'var(--danger)' :
         (store.riskLevel === 'medium' ? 'var(--warning)' :
@@ -573,8 +638,9 @@
         iconAnchor: [6, 6]
       });
 
-      L.marker([lat, lng], { icon }).addTo(map)
-        .on('click', () => openPanel(store));
+      const marker = L.marker([lat, lng], { icon }).addTo(map);
+      marker.on('click', () => openPanel(store));
+      markers.push(marker);
     }
 
     function openPanel(store) {
