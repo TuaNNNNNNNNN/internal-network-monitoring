@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>YODY Risk Dashboard</title>
+  <title>Internal Network Monitoring</title>
 
   <!-- Leaflet & Fonts -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -397,9 +397,9 @@
   <!-- Login Screen -->
   <div id="login-screen" style="display:none;">
     <div class="login-card">
-      <img src="https://yody.vn/images/logo.png" class="login-logo" alt="YODY">
-      <h1>Risk Dashboard</h1>
-      <p>Vui lòng đăng nhập để tiếp tục</p>
+      <div style="font-size: 40px; margin-bottom: 10px;">🛡️</div>
+      <h1>Network Monitoring</h1>
+      <p>Hệ thống giám sát mạng lưới nội bộ</p>
 
       <div class="input-group">
         <input type="email" id="email-input" placeholder="Email@yody.vn" autocomplete="email">
@@ -413,8 +413,8 @@
   <!-- Dashboard -->
   <div id="dashboard">
     <div class="header">
-      <img src="https://yody.vn/images/logo.png" alt="YODY">
-      <h1>Risk Monitoring System</h1>
+      <div style="font-size: 24px;">🛡️</div>
+      <h1>Monitoring System</h1>
       <div class="logout" onclick="logout()">Đăng xuất</div>
     </div>
 
@@ -555,10 +555,10 @@
         // 1. Highlight Border
         L.geoJSON(vnGeoJSON, {
           style: {
-            color: 'var(--accent)',
-            weight: 3,
+            color: '#00ff88', // Bright green for border
+            weight: 4,
             fillOpacity: 0,
-            opacity: 0.8
+            opacity: 1
           }
         }).addTo(map);
 
@@ -581,7 +581,7 @@
         const mask = L.polygon(latlngs, {
           color: 'transparent',
           fillColor: '#000',
-          fillOpacity: 0.6,
+          fillOpacity: 0.75, // Darker mask for better contrast
           interactive: false
         }).addTo(map);
 
