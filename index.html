@@ -396,22 +396,6 @@
   <!-- Sidebar -->
   <div class="sidebar">
     <div class="sidebar-section">
-      <div class="sidebar-title">Bộ lọc thời gian</div>
-      <div class="filter-option active" onclick="setTimeFilter('all')">
-        <div class="filter-radio"></div>
-        <div class="filter-label">Tất cả</div>
-      </div>
-      <div class="filter-option" onclick="setTimeFilter('month')">
-        <div class="filter-radio"></div>
-        <div class="filter-label">Tháng này</div>
-      </div>
-      <div class="filter-option" onclick="setTimeFilter('week')">
-        <div class="filter-radio"></div>
-        <div class="filter-label">7 ngày qua</div>
-      </div>
-    </div>
-
-    <div class="sidebar-section">
       <div class="sidebar-title">Loại hiển thị</div>
       <div class="filter-option active" onclick="setDisplayFilter('all')">
         <div class="filter-radio"></div>
@@ -449,6 +433,13 @@
           <div class="stat-value" id="total-rewards">0</div>
           <div class="stat-label">Khen thưởng</div>
         </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">Top 5 Vi phạm nhiều nhất</div>
+      <div id="top-violations" style="font-size: 12px;">
+        <!-- Will be populated by JS -->
       </div>
     </div>
 
@@ -607,6 +598,62 @@
       document.getElementById('total-stores').textContent = totalStores;
       document.getElementById('total-violations').textContent = totalViolations;
       document.getElementById('total-rewards').textContent = totalHighlights;
+
+      // Update Top 5
+      updateTopViolations();
+    }
+
+    function updateTopViolations() {
+      const topStores = STORES_DATA
+        .filter(s => s.violationCount > 0)
+        .sort((a, b) => b.violationCount - a.violationCount)
+        .slice(0, 5);
+
+      const container = document.getElementById('top-violations');
+      container.innerHTML = '';
+
+      if (topStores.length === 0) {
+        container.innerHTML = '<p style="color: rgba(255,255,255,0.5); font-size: 11px;">Không có vi phạm</p>';
+        return;
+      }
+
+      topStores.forEach((store, index) => {
+        const item = document.createElement('div');
+        item.style.cssText = `
+                    padding: 10px;
+                    background: rgba(255,255,255,0.03);
+                    border: 1px solid rgba(255,255,255,0.08);
+                    border-radius: 8px;
+                    margin-bottom: 8px;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                `;
+        item.onmouseover = () => item.style.background = 'rgba(255,255,255,0.08)';
+        item.onmouseout = () => item.style.background = 'rgba(255,255,255,0.03)';
+
+        const rankColor = index === 0 ? '#f44336' : index === 1 ? '#ff9800' : index === 2 ? '#ffeb3b' : '#999';
+
+        item.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="width: 24px; height: 24px; background: ${rankColor}; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: #000;">${index + 1}</div>
+                        <div style="flex: 1; overflow: hidden;">
+                            <div style="font-weight: 600; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${store.Store_Name || 'Cửa hàng'}</div>
+                            <div style="font-size: 10px; color: rgba(255,255,255,0.6);">${store.violationCount} vi phạm</div>
+                        </div>
+                    </div>
+                `;
+
+        // Click to zoom to marker
+        item.onclick = () => {
+          const lat = parseFloat(store.Latitude || 0);
+          const lng = parseFloat(store.Longitude || 0);
+          if (lat && lng) {
+            map.setView([lat, lng], 12);
+          }
+        };
+
+        container.appendChild(item);
+      });
     }
 
     function renderMarkers() {
@@ -672,16 +719,9 @@
       console.log('Rendered markers:', markers.length);
     }
 
-    function setTimeFilter(filter) {
-      currentTimeFilter = filter;
-      document.querySelectorAll('.sidebar-section:nth-child(1) .filter-option').forEach((el, i) => {
-        el.classList.toggle('active', ['all', 'month', 'week'][i] === filter);
-      });
-    }
-
     function setDisplayFilter(filter) {
       currentDisplayFilter = filter;
-      document.querySelectorAll('.sidebar-section:nth-child(2) .filter-option').forEach((el, i) => {
+      document.querySelectorAll('.sidebar-section:nth-child(1) .filter-option').forEach((el, i) => {
         el.classList.toggle('active', ['all', 'violations', 'clean'][i] === filter);
       });
       renderMarkers();
