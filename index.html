@@ -564,29 +564,69 @@
         console.log('Event[0] values:', Object.values(EVENTS_DATA[0] || {}));
 
         // Process each store
-        STORES_DATA.forEach(store => {
+        let debugCount = 0;
+        STORES_DATA.forEach((store, storeIdx) => {
           const storeID = (store.ID || '').toString().trim();
 
-          // Count violations: match Events where column 2 (after Event_ID) equals Store.ID
-          // In CSV with headers, this would be the second column which might be named differently
-          // Let's use Object.values to get the second value
-          const violations = EVENTS_DATA.filter(event => {
+          // Count violations - try multiple matching methods
+          const violations = EVENTS_DATA.filter((event, eventIdx) => {
             const eventCols = Object.values(event);
-            const eventStoreID = (eventCols[1] || '').toString().trim(); // Column 2 (index 1)
-            return eventStoreID === storeID;
+            const eventKeys = Object.keys(event);
+
+            // Try different ways to get Store_ID from event:
+            // Method 1: By index (column B = index 1, but might be 0 if Event_ID is missing header)
+            const storeID_idx0 = (eventCols[0] || '').toString().trim();
+            const storeID_idx1 = (eventCols[1] || '').toString().trim();
+            const storeID_idx2 = (eventCols[2] || '').toString().trim();
+
+            // Method 2: By column name variations
+            const storeID_byName = (
+              event['Store_ID'] ||
+              event['ID'] ||
+              event['StoreID'] ||
+              event['store_id'] ||
+              event[eventKeys[1]] || // Use whatever the second column is named
+              ''
+            ).toString().trim();
+
+            // Check all possible matches
+            const match = storeID_idx0 === storeID ||
+              storeID_idx1 === storeID ||
+              storeID_idx2 === storeID ||
+              storeID_byName === storeID;
+
+            // Debug first 3 events for first 2 stores
+            if (storeIdx < 2 && eventIdx < 3 && debugCount < 10) {
+              console.log(`Store ${storeID} vs Event[${eventIdx}]:`, {
+                eventKeys,
+                eventCols,
+                storeID_idx0,
+                storeID_idx1,
+                storeID_byName,
+                match
+              });
+              debugCount++;
+            }
+
+            return match;
           });
 
-          // Count highlights
+          // Count highlights with same logic
           const highlights = HIGHLIGHTS_DATA.filter(highlight => {
             const highlightCols = Object.values(highlight);
-            const highlightStoreID = (highlightCols[1] || '').toString().trim();
-            return highlightStoreID === storeID;
+            const highlightKeys = Object.keys(highlight);
+            const storeID_idx1 = (highlightCols[1] || '').toString().trim();
+            const storeID_byName = (
+              highlight['Store_ID'] ||
+              highlight[highlightKeys[1]] ||
+              ''
+            ).toString().trim();
+            return storeID_idx1 === storeID || storeID_byName === storeID;
           });
 
           store.violationCount = violations.length;
           store.highlightCount = highlights.length;
 
-          // Store the events for popup display
           store.violations = violations;
           store.highlights = highlights;
         });
