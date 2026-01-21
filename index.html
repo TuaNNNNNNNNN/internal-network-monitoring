@@ -23,21 +23,52 @@
       box-sizing: border-box;
     }
 
+    :root {
+      /* Dark Theme (Default) */
+      --bg-color: #0a0e27;
+      --sidebar-bg: #151937;
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --card-hover: rgba(255, 255, 255, 0.06);
+      --text-color: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.6);
+      --border-color: rgba(255, 255, 255, 0.15);
+      --accent-color: #667eea;
+      --accent-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --header-bg: rgba(15, 20, 35, 0.7);
+      --popup-bg: rgba(15, 20, 35, 0.95);
+    }
+
+    [data-theme="light"] {
+      /* Yody Light Theme */
+      --bg-color: #f4f6f9;
+      --sidebar-bg: #ffffff;
+      --card-bg: #ffffff;
+      --card-hover: #f8f9fa;
+      --text-color: #333333;
+      --text-muted: #666666;
+      --border-color: #e0e0e0;
+      --accent-color: #FCB900;
+      /* Yody Yellow */
+      --accent-gradient: linear-gradient(135deg, #FCB900 0%, #F5A623 100%);
+      --header-bg: rgba(255, 255, 255, 0.9);
+      --popup-bg: rgba(255, 255, 255, 0.98);
+    }
+
     body {
       font-family: 'Inter', sans-serif;
-      background: #0a0e27;
-      color: #fff;
+      background: var(--bg-color);
+      color: var(--text-color);
       overflow-x: hidden;
       /* Prevent horizontal scroll only */
       min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
     }
 
-    /* Header (Title Block) */
     /* Header (Title Block) - Now in Sidebar */
     .header {
       margin-bottom: 24px;
       padding-bottom: 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid var(--border-color);
     }
 
     .header-icon {
@@ -70,12 +101,14 @@
       top: 0;
       bottom: 0;
       width: 280px;
-      background: #151937;
+      background: var(--sidebar-bg);
       z-index: 999;
       overflow-y: auto;
       padding: 20px;
       padding-top: 150px;
       /* Increased to avoid Header overlap */
+      border-right: 1px solid var(--border-color);
+      transition: background 0.3s;
     }
 
     .sidebar-section {
@@ -86,15 +119,15 @@
       font-size: 11px;
       font-weight: 700;
       letter-spacing: 1px;
-      color: rgba(255, 255, 255, 0.5);
+      color: var(--text-muted);
       margin-bottom: 12px;
       text-transform: uppercase;
     }
 
     .filter-option {
       padding: 10px 14px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
       border-radius: 8px;
       margin-bottom: 8px;
       cursor: pointer;
@@ -102,11 +135,12 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      color: var(--text-color);
     }
 
     .filter-option:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(102, 126, 234, 0.5);
+      background: var(--card-hover);
+      border-color: var(--accent-color);
     }
 
     .filter-option.active {
@@ -141,8 +175,8 @@
 
     /* Stats Cards */
     .stat-card {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
       border-radius: 12px;
       padding: 14px;
       margin-bottom: 10px;
@@ -213,11 +247,11 @@
       top: 0;
       right: 0;
       bottom: 0;
-      background: #0a0e27;
+      background: var(--bg-color);
     }
 
     .leaflet-container {
-      background: #0a0e27 !important;
+      background: var(--bg-color) !important;
     }
 
     /* Numbered Markers */
@@ -404,10 +438,10 @@
       bottom: 0;
       width: 400px;
       max-width: 100%;
-      background: rgba(15, 20, 35, 0.95);
+      background: var(--popup-bg);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-left: 1px solid rgba(255, 255, 255, 0.1);
+      border-left: 1px solid var(--border-color);
       z-index: 9999;
       transform: translateX(100%);
       transition: transform 0.35s cubic-bezier(0.4, 0.0, 0.2, 1);
@@ -415,6 +449,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      color: var(--text-color);
     }
 
     #custom-popup.open {
@@ -470,7 +505,7 @@
     /* Headers */
     .popup-header {
       padding: 24px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid var(--border-color);
       position: relative;
       flex-shrink: 0;
     }
@@ -537,8 +572,8 @@
 
     .popup-tab {
       padding: 10px 16px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
       border-radius: 8px;
       cursor: pointer;
       font-size: 13px;
@@ -547,6 +582,7 @@
       flex: 1;
       text-align: center;
       white-space: nowrap;
+      color: var(--text-color);
     }
 
     .popup-tab.active {
@@ -574,8 +610,8 @@
 
     .item-card {
       padding: 16px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
       border-radius: 12px;
       margin-bottom: 12px;
       cursor: pointer;
@@ -609,6 +645,8 @@
       color: rgba(255, 255, 255, 0.6);
       line-height: 1.5;
       display: -webkit-box;
+      /* Standard property for compatibility */
+      line-clamp: 2;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
@@ -626,7 +664,7 @@
       font-weight: 600;
       margin-bottom: 20px;
       line-height: 1.5;
-      color: #fff;
+      color: var(--text-color);
       border-left: 3px solid #f44336;
       padding-left: 12px;
     }
@@ -663,10 +701,10 @@
     .search-input {
       width: 100%;
       padding: 12px 16px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
       border-radius: 12px;
-      color: #fff;
+      color: var(--text-color);
       font-size: 13px;
       outline: none;
       transition: all 0.2s;
@@ -734,13 +772,13 @@
       right: 240px;
       /* OM Stats width + padding */
       height: 40px;
-      background: rgba(15, 20, 35, 0.9);
+      background: var(--header-bg);
       backdrop-filter: blur(10px);
       z-index: 998;
       display: flex;
       align-items: center;
       overflow: hidden;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      border-bottom: 1px solid var(--border-color);
       white-space: nowrap;
     }
 
@@ -1040,12 +1078,13 @@
     }
 
     /* Map Section Styles */
+    /* Map Section Styles */
     #map-section {
       width: 100%;
-      height: 100vh;
-      /* Extended Height */
+      height: 130vh;
+      /* Extended Height as requested */
       position: relative;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid var(--border-color);
     }
 
     #map-section .header {
@@ -1428,6 +1467,15 @@
             <span>1-2</span>
             <span>3-4</span>
             <span>5+</span>
+          </div>
+        </div>
+
+        <!-- Theme Toggle Section -->
+        <div class="sidebar-section">
+          <div class="sidebar-title">Giao diện</div>
+          <div class="filter-option" onclick="toggleTheme()">
+            <div style="font-size:16px;">🌓</div>
+            <div class="filter-label">Chuyển Chế độ Sáng/Tối</div>
           </div>
         </div>
       </div>
@@ -2143,10 +2191,23 @@
     // Close search when clicking outside
     document.addEventListener('click', (e) => {
       const searchContainer = document.querySelector('.sidebar-search');
-      if (!searchContainer.contains(e.target)) {
-        document.getElementById('search-results').classList.remove('active');
+      if (searchContainer && !searchContainer.contains(e.target)) {
+        const results = document.getElementById('search-results');
+        if (results) results.classList.remove('active');
       }
     });
+
+    // Theme Toggle
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+    // Init Theme
+    if (localStorage.getItem('theme') === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    }
   </script>
 
 
