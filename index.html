@@ -47,10 +47,9 @@
       align-items: center;
       gap: 16px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-      /* Fix layout */
+      /* Fix layout: Constrain to Sidebar width (approx) */
       width: auto;
-      max-width: 90vw;
-      /* Prevent overflow on mobile */
+      max-width: 260px;
       overflow: hidden;
     }
 
@@ -846,7 +845,7 @@
     const CSV_MAIL = `https://docs.google.com/spreadsheets/d/${MAIL_SHEET_ID}/export?format=csv&gid=291208241`;
 
     // UI Config
-    const ZOOM_THRESHOLD = 15; // Zoom level to show store names (Higher = Closer)
+    const ZOOM_THRESHOLD = 12; // Zoom level to show store names (Higher = Closer)
 
     let map, STORES_DATA = [], EVENTS_DATA = [], HIGHLIGHTS_DATA = [], markers = [];
     let currentTimeFilter = 'all', currentDisplayFilter = 'all';
