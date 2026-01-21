@@ -34,7 +34,8 @@
     /* Header */
     .header {
       position: fixed;
-      top: 24px;
+      top: 60px;
+      /* Moved down for ticker */
       left: 24px;
       z-index: 1000;
       background: rgba(15, 20, 35, 0.7);
@@ -733,10 +734,140 @@
       color: rgba(255, 255, 255, 0.4);
       margin-top: 2px;
     }
+
+    /* News Ticker */
+    #news-ticker {
+      position: fixed;
+      top: 0;
+      left: 280px;
+      /* Sidebar width */
+      right: 240px;
+      /* OM Stats width + padding */
+      height: 40px;
+      background: rgba(15, 20, 35, 0.9);
+      backdrop-filter: blur(10px);
+      z-index: 998;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+    }
+
+    .ticker-content {
+      display: inline-block;
+      padding-left: 100%;
+      animation: marquee 30s linear infinite;
+    }
+
+    .ticker-content:hover {
+      animation-play-state: paused;
+    }
+
+    .ticker-item {
+      display: inline-block;
+      padding: 0 20px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.9);
+      cursor: pointer;
+    }
+
+    .ticker-item .highlight {
+      color: #f44336;
+      font-weight: 700;
+      margin-right: 5px;
+    }
+
+    .ticker-item .date {
+      color: rgba(255, 255, 255, 0.5);
+      margin-right: 5px;
+      font-size: 11px;
+    }
+
+    @keyframes marquee {
+      0% {
+        transform: translate(0, 0);
+      }
+
+      100% {
+        transform: translate(-100%, 0);
+      }
+    }
+
+    /* OM Stats Sidebar (Right) */
+    #om-stats {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 220px;
+      background: rgba(15, 20, 35, 0.8);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 16px;
+      z-index: 1000;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .om-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      letter-spacing: 1px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 8px;
+    }
+
+    .om-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 13px;
+    }
+
+    .om-item:last-child {
+      border-bottom: none;
+    }
+
+    .om-name {
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 500;
+    }
+
+    .om-count {
+      background: rgba(244, 67, 54, 0.2);
+      color: #ff8a80;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+    }
   </style>
 </head>
 
 <body>
+  <!-- News Ticker -->
+  <div id="news-ticker">
+    <div class="ticker-content" id="ticker-content">
+      <!-- Mẫu: <span class="ticker-item"><span class="date">20/10</span> <span class="highlight">YODY Hải Dương</span> vi phạm quy trình trưng bày...</span> -->
+      <span class="ticker-item">Đang tải tin tức...</span>
+    </div>
+  </div>
+
+  <!-- OM Stats (Right) -->
+  <div id="om-stats">
+    <div class="om-title">Vi phạm theo OM</div>
+    <div id="om-list">
+      <!-- Items will be populated here -->
+    </div>
+  </div>
 
   <!-- Loading -->
   <div id="loading">
@@ -845,7 +976,7 @@
     const CSV_MAIL = `https://docs.google.com/spreadsheets/d/${MAIL_SHEET_ID}/export?format=csv&gid=291208241`;
 
     // UI Config
-    const ZOOM_THRESHOLD = 8; // Zoom level to show store names (Higher = Closer)
+    const ZOOM_THRESHOLD = 9; // Zoom level to show store names (Higher = Closer)
 
     let map, STORES_DATA = [], EVENTS_DATA = [], HIGHLIGHTS_DATA = [], markers = [];
     let currentTimeFilter = 'all', currentDisplayFilter = 'all';
@@ -1067,9 +1198,119 @@
 
         updateStats();
         renderMarkers();
+        renderOMStats();
+        renderNewsTicker();
       } catch (e) {
         console.error('Data load error:', e);
         alert('Không thể tải dữ liệu. Vui lòng kiểm tra quyền truy cập Google Sheets.');
+      }
+    }
+
+    function renderOMStats() {
+      // Group violations by OM
+      const omCounts = {};
+
+      STORES_DATA.forEach(store => {
+        if (store.violationCount > 0) {
+          // Extract OM name from Address (Format: OM.Name)
+          // Also handle potential raw format anomalies
+          const address = store.Address || '';
+          let omName = 'Khác';
+
+          if (address.includes('OM.')) {
+            const parts = address.split('OM.');
+            if (parts.length > 1) {
+              omName = parts[1].split(',')[0].trim(); // Take name after OM. and before next comma
+            }
+          }
+
+          if (omName) {
+            omCounts[omName] = (omCounts[omName] || 0) + store.violationCount;
+          }
+        }
+      });
+
+      // Sort by count desc
+      const sortedOMs = Object.entries(omCounts)
+        .sort((a, b) => b[1] - a[1]);
+
+      const container = document.getElementById('om-list');
+      container.innerHTML = '';
+
+      if (sortedOMs.length === 0) {
+        container.innerHTML = '<div style="color:rgba(255,255,255,0.5); font-size:11px; text-align:center;">Không có dữ liệu</div>';
+        return;
+      }
+
+      sortedOMs.forEach(([name, count]) => {
+        container.innerHTML += `
+          <div class="om-item">
+            <span class="om-name">${name}</span>
+            <span class="om-count">${count}</span>
+          </div>
+        `;
+      });
+    }
+
+    function renderNewsTicker() {
+      // Filter events that have dates
+      const validEvents = EVENTS_DATA.filter(e => {
+        const cols = Object.values(e);
+        const dateStr = e['Date'] || cols[2];
+        return dateStr && dateStr.trim().length > 0;
+      });
+
+      // Sort by Date Descending
+      validEvents.sort((a, b) => {
+        const colsA = Object.values(a);
+        const colsB = Object.values(b);
+        const dateA = new Date(a['Date'] || colsA[2]);
+        const dateB = new Date(b['Date'] || colsB[2]);
+        return dateB - dateA;
+      });
+
+      // Take top 5
+      const topEvents = validEvents.slice(0, 5);
+      const container = document.getElementById('ticker-content');
+
+      if (topEvents.length === 0) {
+        container.innerHTML = '<span class="ticker-item">Không có tin tức mới</span>';
+        return;
+      }
+
+      container.innerHTML = topEvents.map(event => {
+        const cols = Object.values(event);
+        const date = event['Date'] || cols[2];
+        const desc = event['Description'] || cols[4] || 'Vi phạm chưa xác định';
+
+        // Find Store Name
+        const storeID_ev = (event['Store_ID'] || cols[1] || '').toString().trim();
+        const store = STORES_DATA.find(s => s.ID.toString() === storeID_ev);
+        const storeName = store ? store.Store_Name : `Store #${storeID_ev}`;
+        const storeID = store ? store.ID : '';
+
+        // Snippet
+        let snippet = desc.split(' ').slice(0, 15).join(' ') + '...';
+
+        return `
+          <span class="ticker-item" onclick="zoomToStore('${storeID}')">
+            <span class="date">[${date}]</span>
+            <span class="highlight">${storeName}</span>: ${snippet}
+          </span>
+        `;
+      }).join(' <span style="margin: 0 10px; color: rgba(255,255,255,0.2)">|</span> ');
+    }
+
+    function zoomToStore(storeId) {
+      if (!storeId) return;
+      const store = STORES_DATA.find(s => s.ID.toString() === storeId.toString());
+      if (store) {
+        let lat = parseFloat(store.Latitude || 0);
+        let lng = parseFloat(store.Longitude || 0);
+        if (lat && lng) {
+          map.setView([lat, lng], 18);
+          openStorePopup(store);
+        }
       }
     }
 
