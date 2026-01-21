@@ -1938,7 +1938,7 @@
     const MAIL_SHEET_ID = '1Eea0RMfjsrv_JrCadKxdVWvYdsm14riZYtNcuUWOii0';
     const CSV_STORES = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
     const CSV_EVENTS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=484651391`;
-    const CSV_HIGHLIGHTS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=1234567890`; // Update with correct gid
+    const CSV_HIGHLIGHTS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=1234567890`; // Update if highlights exist
     const CSV_MAIL = `https://docs.google.com/spreadsheets/d/${MAIL_SHEET_ID}/export?format=csv&gid=291208241`;
 
     // UI Config
@@ -1989,28 +1989,37 @@
     }
 
     async function initDashboard() {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('loading').style.display = 'flex';
+      console.log("initDashboard starting...");
+      if (document.getElementById('login-screen')) document.getElementById('login-screen').style.display = 'none';
+      if (document.getElementById('loading')) document.getElementById('loading').style.display = 'flex';
 
       // Init Map
-      map = L.map('map', { zoomControl: false }).setView([16.0, 107.5], 6);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-      L.control.zoom({ position: 'bottomleft' }).addTo(map);
+      console.log("Initializing map...");
+      try {
+        map = L.map('map', { zoomControl: false }).setView([16.0, 107.5], 6);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+        L.control.zoom({ position: 'bottomleft' }).addTo(map);
+        console.log("Map initialized.");
+      } catch (mapErr) {
+        console.error("Map initialization failed:", mapErr);
+      }
 
       // Load Vietnam Border
+      console.log("Fetching Vietnam border...");
       try {
         const response = await fetch('https://cdn.jsdelivr.net/gh/Vizzuality/growasia_calculator@master/public/vietnam.geojson');
         const vnGeoJSON = await response.json();
         L.geoJSON(vnGeoJSON, {
           style: { color: '#00ff88', weight: 2, fillOpacity: 0, opacity: 0.8 }
         }).addTo(map);
-      } catch (e) { }
+        console.log("Border loaded.");
+      } catch (e) {
+        console.warn("Vietnam border fetch failed (non-critical).");
+      }
 
       // Sovereignty: Hoang Sa & Truong Sa
 
       // PATCH: Cover "Biển Đông" / "South China Sea" label
-      // Uses a blurry dark box to mask the base map label
-      // Adjusted position and size for better coverage
       const patchIcon = L.divIcon({
         className: 'map-patch',
         html: '<div style="background: #212121; width: 300px; height: 100px; transform: rotate(-25deg); filter: blur(15px); opacity: 0.9;"></div>',
@@ -2039,7 +2048,6 @@
       // Zoom Listeners (Store Names)
       map.on('zoomend', () => {
         const zoom = map.getZoom();
-        // Use >= so it shows AT the threshold level (15), not just > 15
         if (zoom >= ZOOM_THRESHOLD) {
           document.getElementById('map').classList.add('show-names');
         } else {
@@ -2048,15 +2056,26 @@
       });
 
       // Load Data
-      await loadData();
-
-      document.getElementById('loading').style.display = 'none';
+      console.log("Calling loadData...");
+      try {
+        await loadData();
+        console.log("loadData finished.");
+      } catch (err) {
+        console.error("Dashboard data load failed:", err);
+      } finally {
+        console.log("Hiding loading overlay.");
+        if (document.getElementById('loading')) {
+          document.getElementById('loading').style.display = 'none';
+        }
+      }
     }
 
     async function loadData() {
       try {
         // Load all data
+        console.log("Fetching Stores...");
         const rawStores = await fetchCSV(CSV_STORES);
+        console.log("Fetching Events...");
         const rawEvents = await fetchCSV(CSV_EVENTS, false); // No header parsing for safer mapping
 
         // Process Stores (Standard Header)
@@ -2174,7 +2193,7 @@
         renderNewsTicker();
       } catch (e) {
         console.error('Data load error:', e);
-        alert('Không thể tải dữ liệu. Vui lòng kiểm tra quyền truy cập Google Sheets.');
+        // alert('Không thể tải dữ liệu. Vui lòng kiểm tra quyền truy cập Google Sheets.');
       }
     }
 
