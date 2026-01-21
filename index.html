@@ -27,16 +27,18 @@
       font-family: 'Inter', sans-serif;
       background: #0a0e27;
       color: #fff;
-      overflow: hidden;
-      height: 100vh;
+      overflow-x: hidden;
+      /* Prevent horizontal scroll only */
+      min-height: 100vh;
     }
 
-    /* Header */
+    /* Header (Title Block) */
     .header {
-      position: fixed;
+      position: absolute;
       top: 60px;
-      /* Moved down for ticker */
-      left: 24px;
+      /* Below Ticker (40px) */
+      left: 280px;
+      /* To right of sidebar (260px) */
       z-index: 1000;
       background: rgba(15, 20, 35, 0.7);
       backdrop-filter: blur(12px);
@@ -48,11 +50,9 @@
       align-items: center;
       gap: 16px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-      /* Fix layout: Constrain to Sidebar width (approx) */
-      width: 230px;
-      /* Reduced to avoid overlap */
-      overflow: visible;
-      white-space: normal;
+      width: 260px;
+      overflow: hidden;
+      white-space: nowrap;
     }
 
     .header-icon {
@@ -740,7 +740,8 @@
 
     /* News Ticker */
     #news-ticker {
-      position: fixed;
+      position: absolute;
+      /* Changed from fixed to absolute */
       top: 0;
       left: 280px;
       /* Sidebar width */
@@ -800,7 +801,8 @@
 
     /* OM Stats Sidebar (Right) */
     #om-stats {
-      position: fixed;
+      position: absolute;
+      /* Changed from fixed to absolute */
       top: 20px;
       right: 20px;
       width: 220px;
