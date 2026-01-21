@@ -1989,30 +1989,25 @@
     }
 
     async function initDashboard() {
-      console.log("initDashboard starting...");
       if (document.getElementById('login-screen')) document.getElementById('login-screen').style.display = 'none';
       if (document.getElementById('loading')) document.getElementById('loading').style.display = 'flex';
 
       // Init Map
-      console.log("Initializing map...");
       try {
         map = L.map('map', { zoomControl: false }).setView([16.0, 107.5], 6);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
         L.control.zoom({ position: 'bottomleft' }).addTo(map);
-        console.log("Map initialized.");
       } catch (mapErr) {
         console.error("Map initialization failed:", mapErr);
       }
 
       // Load Vietnam Border
-      console.log("Fetching Vietnam border...");
       try {
         const response = await fetch('https://cdn.jsdelivr.net/gh/Vizzuality/growasia_calculator@master/public/vietnam.geojson');
         const vnGeoJSON = await response.json();
         L.geoJSON(vnGeoJSON, {
           style: { color: '#00ff88', weight: 2, fillOpacity: 0, opacity: 0.8 }
         }).addTo(map);
-        console.log("Border loaded.");
       } catch (e) {
         console.warn("Vietnam border fetch failed (non-critical).");
       }
@@ -2056,14 +2051,11 @@
       });
 
       // Load Data
-      console.log("Calling loadData...");
       try {
         await loadData();
-        console.log("loadData finished.");
       } catch (err) {
         console.error("Dashboard data load failed:", err);
       } finally {
-        console.log("Hiding loading overlay.");
         if (document.getElementById('loading')) {
           document.getElementById('loading').style.display = 'none';
         }
@@ -2073,9 +2065,7 @@
     async function loadData() {
       try {
         // Load all data
-        console.log("Fetching Stores...");
         const rawStores = await fetchCSV(CSV_STORES);
-        console.log("Fetching Events...");
         const rawEvents = await fetchCSV(CSV_EVENTS, false); // No header parsing for safer mapping
 
         // Process Stores (Standard Header)
@@ -2711,10 +2701,8 @@
 
     // Load Home Data
     async function loadHomeData() {
-      console.log("loadHomeData starting...");
       try {
         const rawData = await fetchCSV(CSV_HOME, false);
-        console.log("loadHomeData: CSV fetched.");
         // Cols: A=Cat, B=Title, C=Excerpt, D=Detail, E=Image
         const rows = rawData.data || rawData;
 
