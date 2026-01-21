@@ -1131,6 +1131,145 @@
       font-size: 12px;
       background: #0a0e1a;
     }
+
+    /* Borders Enhancement */
+    .news-card,
+    .report-box,
+    .sidebar-section,
+    .stat-card,
+    .folder-item {
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      /* Visual containment */
+    }
+
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+
+      /* Navigation */
+      .nav-bar {
+        padding: 0 16px;
+        height: 54px;
+      }
+
+      .nav-logo {
+        height: 28px;
+        margin-right: 16px;
+      }
+
+      .nav-items {
+        gap: 16px;
+        overflow-x: auto;
+        padding-bottom: 0;
+        mask-image: linear-gradient(90deg, #000 90%, transparent);
+      }
+
+      .nav-item {
+        font-size: 13px;
+        padding: 6px 10px;
+        white-space: nowrap;
+      }
+
+      /* Home Section */
+      #home-section {
+        padding-top: 54px;
+      }
+
+      .hero-section {
+        padding: 40px 20px;
+        text-align: left;
+      }
+
+      .hero-text {
+        font-size: 14px;
+        padding: 20px;
+      }
+
+      .wall-grid {
+        grid-template-columns: 1fr;
+        /* Single column */
+        gap: 16px;
+        padding: 0 16px;
+      }
+
+      /* Map Section layout */
+      .sidebar {
+        transform: translateX(-100%);
+        /* Hidden by default */
+        top: 0;
+        bottom: 0;
+        width: 85%;
+        box-shadow: 10px 0 50px rgba(0, 0, 0, 0.8);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 10001;
+        /* Above map UI */
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      #map {
+        left: 0 !important;
+        /* Full width */
+      }
+
+      #news-ticker {
+        left: 0 !important;
+        right: 0 !important;
+        top: 0;
+      }
+
+      #om-stats {
+        display: none;
+        /* Hide on mobile to save space */
+      }
+
+      /* Mobile Menu Toggle */
+      .mobile-menu-btn {
+        display: flex !important;
+        position: absolute;
+        top: 55px;
+        /* Below ticker */
+        left: 16px;
+        z-index: 1002;
+        background: #0f1423;
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 8px 12px;
+        border-radius: 8px;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      }
+
+      /* Popup Mobile */
+      #custom-popup {
+        width: 100%;
+        top: 40%;
+        /* Half screen */
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        transform: translateY(100%);
+      }
+
+      #custom-popup.open {
+        transform: translateY(0);
+      }
+
+      /* Inputs */
+      .form-input,
+      .form-textarea {
+        font-size: 16px;
+        /* Prevent IOS zoom */
+      }
+    }
+
+    /* Mobile Toggle Button (Default Hidden) */
+    .mobile-menu-btn {
+      display: none;
+    }
   </style>
 </head>
 
@@ -1181,149 +1320,155 @@
 
       <!-- News Ticker -->
       <div id="news-ticker">
-        <div class="ticker-content" id="ticker-content">
-          <span class="ticker-item">Đang tải tin tức...</span>
-        </div>
-      </div>
-
-      <!-- OM Stats (Right) -->
-      <div id="om-stats">
-        <div class="om-title">Vi phạm theo OM</div>
-        <div id="om-list">
-          <!-- Items will be populated here -->
-        </div>
-      </div>
-
-      <!-- Loading -->
-      <div id="loading">
-        <div class="spinner"></div>
-        <p>Đang tải dữ liệu...</p>
-      </div>
-
-      <!-- Login -->
-      <div id="login-screen">
-        <div class="login-box">
-          <h2>🛡️ Đăng nhập</h2>
-          <p>Hệ thống giám sát rủi ro nội bộ</p>
-          <input type="email" class="login-input" id="email-input" placeholder="Email@yody.vn">
-          <button class="login-btn" onclick="handleLogin()">Đăng nhập</button>
-          <div class="login-error" id="login-error"></div>
-        </div>
-      </div>
-
-
-
-      <!-- Sidebar -->
-      <div class="sidebar">
-
-        <!-- Header Moved Inside Sidebar -->
-        <div class="header">
-          <h1>Thư viện Quản trị rủi ro</h1>
-          <div class="header-subtitle">Hệ thống giám sát và phân tích vi phạm toàn diện</div>
-        </div>
-
-        <div class="sidebar-search">
-          <input type="text" class="search-input" id="store-search" placeholder="🔍 Tìm kiếm cửa hàng..."
-            oninput="handleSearch(this.value)">
-          <div class="search-results" id="search-results"></div>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="sidebar-title">Loại hiển thị</div>
-          <div class="filter-option active" onclick="setDisplayFilter('all')">
-            <div class="filter-radio"></div>
-            <div class="filter-label">Tất cả cửa hàng</div>
-          </div>
-          <div class="filter-option" onclick="setDisplayFilter('violations')">
-            <div class="filter-radio"></div>
-            <div class="filter-label">Có vi phạm</div>
-          </div>
-          <div class="filter-option" onclick="setDisplayFilter('clean')">
-            <div class="filter-radio"></div>
-            <div class="filter-label">Không vi phạm</div>
+        <div id="news-ticker">
+          <div class="ticker-content" id="ticker-content">
+            <span class="ticker-item">Đang tải tin tức...</span>
           </div>
         </div>
 
-        <div class="sidebar-section">
-          <div class="sidebar-title">Thống kê tổng quan</div>
-          <div class="stat-card">
-            <div class="stat-icon stores">🏪</div>
-            <div class="stat-content">
-              <div class="stat-value" id="total-stores">0</div>
-              <div class="stat-label">Cửa hàng</div>
+        <!-- Mobile Menu Button -->
+        <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">
+          ☰ Menu
+        </button>
+
+        <!-- OM Stats (Right) -->
+        <div id="om-stats">
+          <div class="om-title">Vi phạm theo OM</div>
+          <div id="om-list">
+            <!-- Items will be populated here -->
+          </div>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading">
+          <div class="spinner"></div>
+          <p>Đang tải dữ liệu...</p>
+        </div>
+
+        <!-- Login -->
+        <div id="login-screen">
+          <div class="login-box">
+            <h2>🛡️ Đăng nhập</h2>
+            <p>Hệ thống giám sát rủi ro nội bộ</p>
+            <input type="email" class="login-input" id="email-input" placeholder="Email@yody.vn">
+            <button class="login-btn" onclick="handleLogin()">Đăng nhập</button>
+            <div class="login-error" id="login-error"></div>
+          </div>
+        </div>
+
+
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+
+          <!-- Header Moved Inside Sidebar -->
+          <div class="header">
+            <h1>Thư viện Quản trị rủi ro</h1>
+            <div class="header-subtitle">Hệ thống giám sát và phân tích vi phạm toàn diện</div>
+          </div>
+
+          <div class="sidebar-search">
+            <input type="text" class="search-input" id="store-search" placeholder="🔍 Tìm kiếm cửa hàng..."
+              oninput="handleSearch(this.value)">
+            <div class="search-results" id="search-results"></div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-title">Loại hiển thị</div>
+            <div class="filter-option active" onclick="setDisplayFilter('all')">
+              <div class="filter-radio"></div>
+              <div class="filter-label">Tất cả cửa hàng</div>
+            </div>
+            <div class="filter-option" onclick="setDisplayFilter('violations')">
+              <div class="filter-radio"></div>
+              <div class="filter-label">Có vi phạm</div>
+            </div>
+            <div class="filter-option" onclick="setDisplayFilter('clean')">
+              <div class="filter-radio"></div>
+              <div class="filter-label">Không vi phạm</div>
             </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-icon violations">⚠️</div>
-            <div class="stat-content">
-              <div class="stat-value" id="total-violations">0</div>
-              <div class="stat-label">Vi phạm</div>
-            </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon rewards">🏆</div>
-            <div class="stat-content">
-              <div class="stat-value" id="total-rewards">0</div>
-              <div class="stat-label">Khen thưởng</div>
-            </div>
-          </div>
-        </div>
 
-        <div class="sidebar-section">
-          <div class="sidebar-title">Top 5 Vi phạm nhiều nhất</div>
-          <div id="top-violations" style="font-size: 12px;">
-            <!-- Will be populated by JS -->
-          </div>
-        </div>
-
-        <div class="sidebar-section">
-          <div class="sidebar-title">Chỉ tiêu mức độ</div>
-          <div class="risk-gradient"></div>
-          <div class="risk-labels">
-            <span>0 vi phạm</span>
-            <span>1-2</span>
-            <span>3-4</span>
-            <span>5+</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Map -->
-      <div id="map"></div>
-
-      <!-- Custom Popup (Note: Moved here to be inside relative container) -->
-      <div class="popup-overlay" id="popup-overlay" onclick="closePopup()"></div>
-      <div id="custom-popup">
-        <div id="popup-views">
-          <!-- List View -->
-          <div id="view-list" class="view-section">
-            <div class="popup-header">
-              <button class="popup-close" onclick="closePopup()">✕</button>
-              <h3 id="popup-store-name"></h3>
-              <div class="address" id="popup-store-address"></div>
-            </div>
-            <div class="popup-tabs">
-              <div class="popup-tab violations active" onclick="switchTab('violations')">
-                ⚠️ Vi phạm (<span id="tab-violations-count">0</span>)
-              </div>
-              <div class="popup-tab rewards" onclick="switchTab('rewards')">
-                🏆 Khen thưởng (<span id="tab-rewards-count">0</span>)
+          <div class="sidebar-section">
+            <div class="sidebar-title">Thống kê tổng quan</div>
+            <div class="stat-card">
+              <div class="stat-icon stores">🏪</div>
+              <div class="stat-content">
+                <div class="stat-value" id="total-stores">0</div>
+                <div class="stat-label">Cửa hàng</div>
               </div>
             </div>
-            <div class="popup-body" id="popup-body"></div>
-          </div>
-          <!-- Detail View -->
-          <div id="view-detail" class="view-section">
-            <div class="popup-header">
-              <button class="popup-close" onclick="closePopup()">✕</button>
-              <button class="back-btn" onclick="backToList()">← Quay lại</button>
-              <h3 id="detail-header-title">Chi tiết vi phạm</h3>
+            <div class="stat-card">
+              <div class="stat-icon violations">⚠️</div>
+              <div class="stat-content">
+                <div class="stat-value" id="total-violations">0</div>
+                <div class="stat-label">Vi phạm</div>
+              </div>
             </div>
-            <div class="detail-body" id="detail-body"></div>
+            <div class="stat-card">
+              <div class="stat-icon rewards">🏆</div>
+              <div class="stat-content">
+                <div class="stat-value" id="total-rewards">0</div>
+                <div class="stat-label">Khen thưởng</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-title">Top 5 Vi phạm nhiều nhất</div>
+            <div id="top-violations" style="font-size: 12px;">
+              <!-- Will be populated by JS -->
+            </div>
+          </div>
+
+          <div class="sidebar-section">
+            <div class="sidebar-title">Chỉ tiêu mức độ</div>
+            <div class="risk-gradient"></div>
+            <div class="risk-labels">
+              <span>0 vi phạm</span>
+              <span>1-2</span>
+              <span>3-4</span>
+              <span>5+</span>
+            </div>
           </div>
         </div>
-      </div>
-    </div> <!-- End Map UI Container -->
+
+        <!-- Map -->
+        <div id="map"></div>
+
+        <!-- Custom Popup (Note: Moved here to be inside relative container) -->
+        <div class="popup-overlay" id="popup-overlay" onclick="closePopup()"></div>
+        <div id="custom-popup">
+          <div id="popup-views">
+            <!-- List View -->
+            <div id="view-list" class="view-section">
+              <div class="popup-header">
+                <button class="popup-close" onclick="closePopup()">✕</button>
+                <h3 id="popup-store-name"></h3>
+                <div class="address" id="popup-store-address"></div>
+              </div>
+              <div class="popup-tabs">
+                <div class="popup-tab violations active" onclick="switchTab('violations')">
+                  ⚠️ Vi phạm (<span id="tab-violations-count">0</span>)
+                </div>
+                <div class="popup-tab rewards" onclick="switchTab('rewards')">
+                  🏆 Khen thưởng (<span id="tab-rewards-count">0</span>)
+                </div>
+              </div>
+              <div class="popup-body" id="popup-body"></div>
+            </div>
+            <!-- Detail View -->
+            <div id="view-detail" class="view-section">
+              <div class="popup-header">
+                <button class="popup-close" onclick="closePopup()">✕</button>
+                <button class="back-btn" onclick="backToList()">← Quay lại</button>
+                <h3 id="detail-header-title">Chi tiết vi phạm</h3>
+              </div>
+              <div class="detail-body" id="detail-body"></div>
+            </div>
+          </div>
+        </div>
+      </div> <!-- End Map UI Container -->
   </section>
 
   <script>
@@ -2144,6 +2289,11 @@
         }
       }
     });
+
+    // Mobile Sidebar Toggle
+    function toggleMobileSidebar() {
+      document.querySelector('.sidebar').classList.toggle('open');
+    }
 
   </script>
 </body>
