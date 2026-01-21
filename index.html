@@ -49,12 +49,10 @@
       gap: 16px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
       /* Fix layout: Constrain to Sidebar width (approx) */
-      width: 260px;
-      /* Force width */
+      width: 230px;
+      /* Reduced to avoid overlap */
       overflow: visible;
-      /* Allow content to dictate height */
       white-space: normal;
-      /* Ensure wrap */
     }
 
     .header-icon {
@@ -980,7 +978,7 @@
     const CSV_MAIL = `https://docs.google.com/spreadsheets/d/${MAIL_SHEET_ID}/export?format=csv&gid=291208241`;
 
     // UI Config
-    const ZOOM_THRESHOLD = 9; // Zoom level to show store names (Higher = Closer)
+    const ZOOM_THRESHOLD = 12; // Zoom level to show store names (Higher = Closer)
 
     let map, STORES_DATA = [], EVENTS_DATA = [], HIGHLIGHTS_DATA = [], markers = [];
     let currentTimeFilter = 'all', currentDisplayFilter = 'all';
@@ -1288,10 +1286,16 @@
         const desc = event['Description'] || cols[4] || 'Vi phạm chưa xác định';
 
         // Find Store Name
+        // Find Store Name - Robust Mapping
         const storeID_ev = (event['Store_ID'] || cols[1] || '').toString().trim();
-        const store = STORES_DATA.find(s => s.ID.toString() === storeID_ev);
+
+        const store = STORES_DATA.find(s => {
+          const sID = (s.ID || Object.values(s)[0] || '').toString().trim();
+          return sID === storeID_ev;
+        });
+
         const storeName = store ? store.Store_Name : `Store #${storeID_ev}`;
-        const storeID = store ? store.ID : '';
+        const storeID = store ? (store.ID || Object.values(store)[0]) : '';
 
         // Snippet
         let snippet = desc.split(' ').slice(0, 15).join(' ') + '...';
