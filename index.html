@@ -47,9 +47,11 @@
       align-items: center;
       gap: 16px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-      max-width: 400px;
+      /* Fix layout */
+      width: auto;
+      max-width: 90vw;
+      /* Prevent overflow on mobile */
       overflow: hidden;
-      /* Fix blur overflow */
     }
 
     .header-icon {
@@ -661,6 +663,76 @@
       white-space: pre-wrap;
       /* Preserve line breaks */
     }
+
+    /* Search Box */
+    .sidebar-search {
+      margin-bottom: 24px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .search-input:focus {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: rgba(15, 20, 35, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      margin-top: 8px;
+      max-height: 250px;
+      overflow-y: auto;
+      z-index: 1001;
+      display: none;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .search-results.active {
+      display: block;
+    }
+
+    .search-item {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .search-item:last-child {
+      border-bottom: none;
+    }
+
+    .search-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .search-item .sub-text {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 2px;
+    }
   </style>
 </head>
 
@@ -694,6 +766,13 @@
 
   <!-- Sidebar -->
   <div class="sidebar">
+
+    <div class="sidebar-search">
+      <input type="text" class="search-input" id="store-search" placeholder="🔍 Tìm kiếm cửa hàng..."
+        oninput="handleSearch(this.value)">
+      <div class="search-results" id="search-results"></div>
+    </div>
+
     <div class="sidebar-section">
       <div class="sidebar-title">Loại hiển thị</div>
       <div class="filter-option active" onclick="setDisplayFilter('all')">
@@ -767,10 +846,11 @@
     const CSV_MAIL = `https://docs.google.com/spreadsheets/d/${MAIL_SHEET_ID}/export?format=csv&gid=291208241`;
 
     // UI Config
-    const ZOOM_THRESHOLD = 14; // Zoom level to show store names (Higher = Closer)
+    const ZOOM_THRESHOLD = 15; // Zoom level to show store names (Higher = Closer)
 
     let map, STORES_DATA = [], EVENTS_DATA = [], HIGHLIGHTS_DATA = [], markers = [];
     let currentTimeFilter = 'all', currentDisplayFilter = 'all';
+    let searchTimeout;
 
     // Session Check
     window.onload = () => {
@@ -1239,6 +1319,70 @@
         });
       });
     }
+    // Search Functionality
+    function handleSearch(query) {
+      clearTimeout(searchTimeout);
+      const resultsContainer = document.getElementById('search-results');
+
+      if (!query || query.trim().length === 0) {
+        resultsContainer.classList.remove('active');
+        return;
+      }
+
+      searchTimeout = setTimeout(() => {
+        const searchTerm = query.toLowerCase().trim();
+        const matches = STORES_DATA.filter(store => {
+          const name = (store.Store_Name || '').toLowerCase();
+          const address = (store.Address || '').toLowerCase();
+          return name.includes(searchTerm) || address.includes(searchTerm);
+        }).slice(0, 10); // Limit to 10 results
+
+        if (matches.length > 0) {
+          resultsContainer.innerHTML = matches.map(store => `
+            <div class="search-item" onclick="selectSearchStore('${store.ID}')">
+              <div>${store.Store_Name}</div>
+              <div class="sub-text">${store.Address || 'Không có địa chỉ'}</div>
+            </div>
+          `).join('');
+          resultsContainer.classList.add('active');
+        } else {
+          resultsContainer.innerHTML = `
+            <div class="search-item" style="cursor: default; opacity: 0.5;">
+              Không tìm thấy kết quả
+            </div>
+          `;
+          resultsContainer.classList.add('active');
+        }
+      }, 300);
+    }
+
+    function selectSearchStore(storeId) {
+      const store = STORES_DATA.find(s => s.ID.toString() === storeId.toString());
+      if (store) {
+        // Zoom to store
+        let lat = parseFloat(store.Latitude || 0);
+        let lng = parseFloat(store.Longitude || 0);
+
+        if (lat && lng) {
+          map.setView([lat, lng], 18); // Zoom very close
+          openStorePopup(store);
+
+          // Clear search
+          document.getElementById('store-search').value = '';
+          document.getElementById('search-results').classList.remove('active');
+        } else {
+          alert('Cửa hàng này chưa có tọa độ trên bản đồ');
+        }
+      }
+    }
+
+    // Close search when clicking outside
+    document.addEventListener('click', (e) => {
+      const searchContainer = document.querySelector('.sidebar-search');
+      if (!searchContainer.contains(e.target)) {
+        document.getElementById('search-results').classList.remove('active');
+      }
+    });
   </script>
 
   <!-- Custom Popup (Right Sidebar) -->
