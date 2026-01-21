@@ -33,18 +33,23 @@
 
     /* Header */
     .header {
-      position: absolute;
-      top: 16px;
-      left: 16px;
+      position: fixed;
+      top: 24px;
+      left: 24px;
       z-index: 1000;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
+      background: rgba(15, 20, 35, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 16px 24px;
+      border-radius: 16px;
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 10px 20px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      max-width: 400px;
+      overflow: hidden;
+      /* Fix blur overflow */
     }
 
     .header-icon {
@@ -682,7 +687,7 @@
   <div class="header">
     <div class="header-icon">Y</div>
     <div>
-      <h1>Thư viện Quản trị Rủi ro</h1>
+      <h1>Thư viện Quản trị rủi ro</h1>
       <div class="header-subtitle">Hệ thống giám sát và phân tích vi phạm toàn diện</div>
     </div>
   </div>
@@ -762,7 +767,7 @@
     const CSV_MAIL = `https://docs.google.com/spreadsheets/d/${MAIL_SHEET_ID}/export?format=csv&gid=291208241`;
 
     // UI Config
-    const ZOOM_THRESHOLD = 12; // Zoom level to show store names (Higher = Closer)
+    const ZOOM_THRESHOLD = 10; // Zoom level to show store names (Higher = Closer)
 
     let map, STORES_DATA = [], EVENTS_DATA = [], HIGHLIGHTS_DATA = [], markers = [];
     let currentTimeFilter = 'all', currentDisplayFilter = 'all';
@@ -829,13 +834,14 @@
 
       // PATCH: Cover "Biển Đông" / "South China Sea" label
       // Uses a blurry dark box to mask the base map label
+      // Adjusted position and size for better coverage
       const patchIcon = L.divIcon({
         className: 'map-patch',
-        html: '<div style="background: #262626; width: 140px; height: 30px; transform: rotate(-10deg); filter: blur(4px); opacity: 0.95;"></div>',
-        iconSize: [140, 30],
-        iconAnchor: [70, 15]
+        html: '<div style="background: #212121; width: 300px; height: 100px; transform: rotate(-25deg); filter: blur(15px); opacity: 0.9;"></div>',
+        iconSize: [300, 100],
+        iconAnchor: [150, 50]
       });
-      L.marker([13.5, 113.5], { icon: patchIcon, interactive: false, zIndexOffset: -100 }).addTo(map);
+      L.marker([14.5, 114.0], { icon: patchIcon, interactive: false, zIndexOffset: -100 }).addTo(map);
 
       const islands = [
         { name: "Quần đảo Hoàng Sa", coords: [16.4, 112.0] },
