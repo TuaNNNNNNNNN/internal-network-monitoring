@@ -2552,15 +2552,23 @@
 
     function fetchCSV(url, header = true) {
       return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error("Fetch timeout for URL: " + url));
+        }, 15000); // 15s timeout
+
         Papa.parse(url, {
           download: true,
           header: header,
           skipEmptyLines: true,
           complete: (results) => {
+            clearTimeout(timeout);
             if (header) resolve(results.data);
             else resolve(results); // Return full result for manual handling
           },
-          error: (err) => reject(err)
+          error: (err) => {
+            clearTimeout(timeout);
+            reject(err);
+          }
         });
       });
     }
@@ -2703,8 +2711,10 @@
 
     // Load Home Data
     async function loadHomeData() {
+      console.log("loadHomeData starting...");
       try {
         const rawData = await fetchCSV(CSV_HOME, false);
+        console.log("loadHomeData: CSV fetched.");
         // Cols: A=Cat, B=Title, C=Excerpt, D=Detail, E=Image
         const rows = rawData.data || rawData;
 
