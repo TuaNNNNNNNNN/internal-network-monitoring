@@ -2222,7 +2222,8 @@
         const rows = rawData.data || rawData;
 
         // Filter valid rows (must have title)
-        const validRows = rows.filter(r => r.length > 1 && r[1] && r[1].trim() !== 'Tiêu đề' && r[1].trim() !== '');
+        // Filter valid rows (Skip header row 0, then check for data)
+        const validRows = rows.slice(1).filter(r => r.length > 1 && r[1] && r[1].trim() !== '');
 
         HOME_DATA = validRows.map(r => ({
           category: r[0],
