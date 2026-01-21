@@ -391,8 +391,10 @@
       box-shadow: none !important;
       color: #fff !important;
       font-weight: 600;
+      font-weight: 600;
       font-size: 12px;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+      /* Reduced shadow strength */
       margin-top: -45px !important;
       opacity: 0 !important;
       visibility: hidden;
@@ -978,7 +980,7 @@
     const CSV_MAIL = `https://docs.google.com/spreadsheets/d/${MAIL_SHEET_ID}/export?format=csv&gid=291208241`;
 
     // UI Config
-    const ZOOM_THRESHOLD = 12; // Zoom level to show store names (Higher = Closer)
+    const ZOOM_THRESHOLD = 10; // Zoom level to show store names (Higher = Closer)
 
     let map, STORES_DATA = [], EVENTS_DATA = [], HIGHLIGHTS_DATA = [], markers = [];
     let currentTimeFilter = 'all', currentDisplayFilter = 'all';
@@ -1092,15 +1094,27 @@
     async function loadData() {
       try {
         // Load all data
-        let rawStores = await fetchCSV(CSV_STORES);
-        let rawEvents = await fetchCSV(CSV_EVENTS);
+        const rawStores = await fetchCSV(CSV_STORES);
+        const rawEvents = await fetchCSV(CSV_EVENTS, false); // No header parsing for safer mapping
 
-        // Filter empty rows
+        // Process Stores (Standard Header)
         STORES_DATA = rawStores.filter(s => s.ID && s.ID.toString().trim());
-        EVENTS_DATA = rawEvents.filter(e => {
-          const cols = Object.values(e);
-          return cols.length > 1 && (cols[0] || cols[1]);
+
+        // Process Events (Manual Mapping)
+        // Filter valid rows: Must have enough columns and look like an event (start with EV or have a date)
+        // User confirmed: Col B (Index 1) is Store ID.
+        // Assuming format: [EventID, StoreID, Date, Type, Description]
+        const validEventRows = rawEvents.data.filter(row => {
+          return row.length >= 3 && (row[0] || '').toString().toUpperCase().startsWith('EV');
         });
+
+        EVENTS_DATA = validEventRows.map(row => ({
+          ID: row[0],
+          Store_ID: row[1], // Column B
+          Date: row[2],     // Column C
+          Type: row[3],
+          Description: row[4]
+        }));
 
         // Try to load highlights, if fails just continue
         try {
@@ -1111,20 +1125,14 @@
 
         console.log('=== LOADED ===');
         console.log('ZOOM THRESHOLD CONFIG:', ZOOM_THRESHOLD);
-        console.log('Stores:', STORES_DATA.length, '(raw:', rawStores.length, ')');
-        console.log('Events:', EVENTS_DATA.length, '(raw:', rawEvents.length, ')');
+        console.log('Stores:', STORES_DATA.length);
+        console.log('Events:', EVENTS_DATA.length);
         console.log('\n=== SAMPLES ===');
         console.log('Store[0]:', STORES_DATA[0]);
         console.log('Event[0]:', EVENTS_DATA[0]);
-        console.log('Event[0] keys:', Object.keys(EVENTS_DATA[0] || {}));
-        console.log('Event[0] values:', Object.values(EVENTS_DATA[0] || {}));
 
         // Process each store
         let debugCount = 0;
-        if (EVENTS_DATA.length > 0) {
-          console.log('Event Keys Debug:', Object.keys(EVENTS_DATA[0]));
-          console.log('First Event Sample:', EVENTS_DATA[0]);
-        }
 
         STORES_DATA.forEach((store, storeIdx) => {
           const storeID = (store.ID || '').toString().trim();
@@ -1561,13 +1569,16 @@
       renderMarkers();
     }
 
-    function fetchCSV(url) {
+    function fetchCSV(url, header = true) {
       return new Promise((resolve, reject) => {
         Papa.parse(url, {
           download: true,
-          header: true,
+          header: header,
           skipEmptyLines: true,
-          complete: (results) => resolve(results.data),
+          complete: (results) => {
+            if (header) resolve(results.data);
+            else resolve(results); // Return full result for manual handling
+          },
           error: (err) => reject(err)
         });
       });
