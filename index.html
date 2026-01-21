@@ -759,6 +759,9 @@
     const CSV_HIGHLIGHTS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=1234567890`; // Update with correct gid
     const CSV_MAIL = `https://docs.google.com/spreadsheets/d/${MAIL_SHEET_ID}/export?format=csv&gid=291208241`;
 
+    // UI Config
+    const ZOOM_THRESHOLD = 14; // Zoom level to show store names (Higher = Closer)
+
     let map, STORES_DATA = [], EVENTS_DATA = [], HIGHLIGHTS_DATA = [], markers = [];
     let currentTimeFilter = 'all', currentDisplayFilter = 'all';
 
@@ -840,7 +843,7 @@
       // Zoom Listeners (Store Names)
       map.on('zoomend', () => {
         const zoom = map.getZoom();
-        if (zoom > 14) { // Only show when very close
+        if (zoom > ZOOM_THRESHOLD) {
           document.getElementById('map').classList.add('show-names');
         } else {
           document.getElementById('map').classList.remove('show-names');
@@ -884,6 +887,11 @@
 
         // Process each store
         let debugCount = 0;
+        if (EVENTS_DATA.length > 0) {
+          console.log('Event Keys Debug:', Object.keys(EVENTS_DATA[0]));
+          console.log('First Event Sample:', EVENTS_DATA[0]);
+        }
+
         STORES_DATA.forEach((store, storeIdx) => {
           const storeID = (store.ID || '').toString().trim();
 
@@ -1079,20 +1087,32 @@
         const card = document.createElement('div');
         card.className = 'item-card';
 
-        // Dynamic title/desc based on tab
-        let title = tab === 'violations' ? (item['Violation_Type'] || 'Vi phạm') : (item['Type'] || 'Khen thưởng');
-        let date = item['Date'] || '';
-        let desc = tab === 'violations' ? (item['Description'] || '') : (item['Reason'] || '');
+        // Use Description for Title (Snippet) if Violation Type is generic/missing
+        const cols = Object.values(item);
+        // Column mapping based on observation: 0:ID, 2:Date, 4:Desc
+        let fullDesc = item['Description'] || cols[4] || '';
 
-        // Debug fallback
-        if (title === 'Vi phạm' && item['ID']) title = `Vi phạm #${item['ID']}`;
+        // Fallback title logic
+        let type = tab === 'violations' ? (item['Violation_Type'] || 'Vi phạm') : (item['Type'] || 'Khen thưởng');
+        let date = item['Date'] || cols[2] || '';
+
+        // Smart Title: First 10 words of description
+        let shortTitle = fullDesc.split(' ').slice(0, 10).join(' ');
+        if (fullDesc.length > shortTitle.length) shortTitle += '...';
+
+        // If description is empty, fallback to type + ID
+        if (!shortTitle.trim()) {
+          shortTitle = `${type} #${item['ID'] || cols[0] || ''}`;
+        }
 
         card.innerHTML = `
           <div class="item-title">
-            <span>${title}</span>
-            <span class="item-date">${date}</span>
+            <span>${shortTitle}</span>
           </div>
-          <div class="item-preview">${desc}</div>
+          <div class="item-preview" style="display:flex; justify-content:space-between; margin-top:4px;">
+             <span>${date}</span>
+             <span style="font-size:10px; opacity:0.7; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px;">${type}</span>
+          </div>
         `;
 
         card.onclick = () => showDetail(item);
