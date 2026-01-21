@@ -825,7 +825,18 @@
         }).addTo(map);
       } catch (e) { }
 
-      // Map Sovereignty Labels
+      // Sovereignty: Hoang Sa & Truong Sa
+
+      // PATCH: Cover "Biển Đông" / "South China Sea" label
+      // Uses a blurry dark box to mask the base map label
+      const patchIcon = L.divIcon({
+        className: 'map-patch',
+        html: '<div style="background: #262626; width: 140px; height: 30px; transform: rotate(-10deg); filter: blur(4px); opacity: 0.95;"></div>',
+        iconSize: [140, 30],
+        iconAnchor: [70, 15]
+      });
+      L.marker([13.5, 113.5], { icon: patchIcon, interactive: false, zIndexOffset: -100 }).addTo(map);
+
       const islands = [
         { name: "Quần đảo Hoàng Sa", coords: [16.4, 112.0] },
         { name: "Quần đảo Trường Sa", coords: [10.0, 114.0] }
@@ -838,14 +849,16 @@
             html: island.name,
             iconSize: [200, 20],
             iconAnchor: [100, 10]
-          })
+          }),
+          interactive: false
         }).addTo(map);
       });
 
       // Zoom Listeners (Store Names)
       map.on('zoomend', () => {
         const zoom = map.getZoom();
-        if (zoom > ZOOM_THRESHOLD) {
+        // Use >= so it shows AT the threshold level (15), not just > 15
+        if (zoom >= ZOOM_THRESHOLD) {
           document.getElementById('map').classList.add('show-names');
         } else {
           document.getElementById('map').classList.remove('show-names');
