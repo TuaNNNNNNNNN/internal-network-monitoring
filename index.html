@@ -852,519 +852,755 @@
       border-radius: 10px;
       font-size: 11px;
       font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* --- PORTAL STYLES --- */
+    /* Navigation */
+    .nav-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 60px;
+      background: rgba(15, 20, 35, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .nav-logo {
+      height: 40px;
+      margin-right: 40px;
+    }
+
+    .nav-items {
+      display: flex;
+      gap: 30px;
+    }
+
+    .nav-item {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-item.active {
+      color: #fcb900;
+      /* Yody Yellow */
+    }
+
+    /* View Container */
+    .view-container {
+      position: absolute;
+      top: 60px;
+      /* Below Nav */
+      left: 0;
+      width: 100%;
+      height: calc(100% - 60px);
+      overflow: hidden;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .view-container.active {
+      display: block;
+      opacity: 1;
+    }
+
+    /* Wall View Styles */
+    #view-wall {
+      background: #0f1423;
+      /* Dark bg */
+      overflow-y: auto;
+      padding-bottom: 50px;
+    }
+
+    .hero-section {
+      position: relative;
+      width: 100%;
+      padding: 60px 40px;
+      background: linear-gradient(135deg, rgba(29, 39, 85, 0.6) 0%, rgba(15, 20, 35, 0.9) 100%),
+        url('https://source.unsplash.com/1600x900/?office,teamwork') center/cover;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .hero-logo {
+      height: 80px;
+      margin-bottom: 24px;
+    }
+
+    .hero-text {
+      max-width: 800px;
+      color: #fff;
+      line-height: 1.6;
+      font-size: 16px;
+      font-style: italic;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 30px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(4px);
+    }
+
+    .wall-grid {
+      max-width: 1200px;
+      margin: 40px auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
+      padding: 0 24px;
+    }
+
+    .news-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+
+    .news-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .news-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      background: #2a2a2a;
+    }
+
+    .news-content {
+      padding: 20px;
+    }
+
+    .news-tag {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #fcb900;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .news-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .news-excerpt {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .news-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.4);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 12px;
+    }
+
+    /* Map View Adjustments */
+    #view-map {
+      position: absolute;
+      /* Re-assert absolute for full fill */
+    }
+
+    /* Fix header position in map view */
+    #view-map .header {
+      top: 20px;
+      /* Adjust for Nav Bar isn't needed if container starts below? 
+                     Actually container starts at 60px top. So header top 20px is relative to container (60+20=80px total). 
+                     That looks fine. */
     }
   </style>
 </head>
 
 <body>
-  <!-- News Ticker -->
-  <div id="news-ticker">
-    <div class="ticker-content" id="ticker-content">
-      <!-- Mẫu: <span class="ticker-item"><span class="date">20/10</span> <span class="highlight">YODY Hải Dương</span> vi phạm quy trình trưng bày...</span> -->
-      <span class="ticker-item">Đang tải tin tức...</span>
-    </div>
-  </div>
-
-  <!-- OM Stats (Right) -->
-  <div id="om-stats">
-    <div class="om-title">Vi phạm theo OM</div>
-    <div id="om-list">
-      <!-- Items will be populated here -->
-    </div>
-  </div>
-
-  <!-- Loading -->
-  <div id="loading">
-    <div class="spinner"></div>
-    <p>Đang tải dữ liệu...</p>
-  </div>
-
-  <!-- Login -->
-  <div id="login-screen">
-    <div class="login-box">
-      <h2>🛡️ Đăng nhập</h2>
-      <p>Hệ thống giám sát rủi ro nội bộ</p>
-      <input type="email" class="login-input" id="email-input" placeholder="Email@yody.vn">
-      <button class="login-btn" onclick="handleLogin()">Đăng nhập</button>
-      <div class="login-error" id="login-error"></div>
-    </div>
-  </div>
-
-  <!-- Header -->
-  <div class="header">
-    <div>
-      <h1>Thư viện Quản trị rủi ro</h1>
-      <div class="header-subtitle">Hệ thống giám sát và phân tích vi phạm toàn diện</div>
-    </div>
-  </div>
-
-  <!-- Sidebar -->
-  <div class="sidebar">
-
-    <div class="sidebar-search">
-      <input type="text" class="search-input" id="store-search" placeholder="🔍 Tìm kiếm cửa hàng..."
-        oninput="handleSearch(this.value)">
-      <div class="search-results" id="search-results"></div>
-    </div>
-
-    <div class="sidebar-section">
-      <div class="sidebar-title">Loại hiển thị</div>
-      <div class="filter-option active" onclick="setDisplayFilter('all')">
-        <div class="filter-radio"></div>
-        <div class="filter-label">Tất cả cửa hàng</div>
+  <!-- Navigation -->
+  <nav class="nav-bar">
+    <img src="./yody-logo.png" alt="Yody" class="nav-logo">
+    <div class="nav-items">
+      <div class="nav-item active" onclick="switchView('wall')">
+        <span>📰</span> Báo tường
       </div>
-      <div class="filter-option" onclick="setDisplayFilter('violations')">
-        <div class="filter-radio"></div>
-        <div class="filter-label">Có vi phạm</div>
+      <div class="nav-item" onclick="switchView('map')">
+        <span>🗺️</span> Bản đồ Rủi ro
       </div>
-      <div class="filter-option" onclick="setDisplayFilter('clean')">
-        <div class="filter-radio"></div>
-        <div class="filter-label">Không vi phạm</div>
+      <div class="nav-item" onclick="alert('Tính năng đang phát triển')">
+        <span>📢</span> Tố giác ẩn danh
+      </div>
+    </div>
+  </nav>
+
+  <!-- WALL VIEW -->
+  <div id="view-wall" class="view-container active">
+    <!-- Hero Section -->
+    <div class="hero-section">
+      <!-- <img src="./yody-logo.png" class="hero-logo"> -->
+      <div class="hero-text">
+        "Tại YODY, chúng tôi hiểu rằng trong quá trình làm việc, có thể phát sinh những điều chưa phù hợp với giá trị
+        cốt lõi, quy chuẩn văn hóa hoặc các hành vi khiến bạn băn khoăn.
+        <br><br>
+        Mỗi góp ý, mỗi phản ánh từ bạn không chỉ giúp phát hiện và ngăn chặn kịp thời những sai lệch mà còn là động lực
+        mạnh mẽ để YODY ngày càng hoàn thiện hơn. Đây là cách chúng ta cùng nhau xây dựng một môi trường làm việc minh
+        bạch – công bằng – nhân văn, đồng thời đóng góp thêm nhiều giá trị tích cực cho xã hội và cộng đồng.
+        <br><br>
+        📩 <strong>Mọi phản ánh đều được bảo mật tuyệt đối, tiếp nhận và xử lý.</strong>"
       </div>
     </div>
 
-    <div class="sidebar-section">
-      <div class="sidebar-title">Thống kê tổng quan</div>
-      <div class="stat-card">
-        <div class="stat-icon stores">🏪</div>
-        <div class="stat-content">
-          <div class="stat-value" id="total-stores">0</div>
-          <div class="stat-label">Cửa hàng</div>
+    <!-- News Grid (Mock Data) -->
+    <div class="wall-grid" id="wall-grid">
+      <!-- Generated by JS -->
+    </div>
+  </div>
+
+  <!-- MAP VIEW -->
+  <div id="view-map" class="view-container">
+
+    <!-- News Ticker -->
+    <div id="news-ticker">
+      <div class="ticker-content" id="ticker-content">
+        <!-- Mẫu: <span class="ticker-item"><span class="date">20/10</span> <span class="highlight">YODY Hải Dương</span> vi phạm quy trình trưng bày...</span> -->
+        <span class="ticker-item">Đang tải tin tức...</span>
+      </div>
+    </div>
+
+    <!-- OM Stats (Right) -->
+    <div id="om-stats">
+      <div class="om-title">Vi phạm theo OM</div>
+      <div id="om-list">
+        <!-- Items will be populated here -->
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading">
+      <div class="spinner"></div>
+      <p>Đang tải dữ liệu...</p>
+    </div>
+
+    <!-- Login -->
+    <div id="login-screen">
+      <div class="login-box">
+        <h2>🛡️ Đăng nhập</h2>
+        <p>Hệ thống giám sát rủi ro nội bộ</p>
+        <input type="email" class="login-input" id="email-input" placeholder="Email@yody.vn">
+        <button class="login-btn" onclick="handleLogin()">Đăng nhập</button>
+        <div class="login-error" id="login-error"></div>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <h1>Thư viện Quản trị rủi ro</h1>
+        <div class="header-subtitle">Hệ thống giám sát và phân tích vi phạm toàn diện</div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+
+      <div class="sidebar-search">
+        <input type="text" class="search-input" id="store-search" placeholder="🔍 Tìm kiếm cửa hàng..."
+          oninput="handleSearch(this.value)">
+        <div class="search-results" id="search-results"></div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">Loại hiển thị</div>
+        <div class="filter-option active" onclick="setDisplayFilter('all')">
+          <div class="filter-radio"></div>
+          <div class="filter-label">Tất cả cửa hàng</div>
+        </div>
+        <div class="filter-option" onclick="setDisplayFilter('violations')">
+          <div class="filter-radio"></div>
+          <div class="filter-label">Có vi phạm</div>
+        </div>
+        <div class="filter-option" onclick="setDisplayFilter('clean')">
+          <div class="filter-radio"></div>
+          <div class="filter-label">Không vi phạm</div>
         </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon violations">⚠️</div>
-        <div class="stat-content">
-          <div class="stat-value" id="total-violations">0</div>
-          <div class="stat-label">Vi phạm</div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">Thống kê tổng quan</div>
+        <div class="stat-card">
+          <div class="stat-icon stores">🏪</div>
+          <div class="stat-content">
+            <div class="stat-value" id="total-stores">0</div>
+            <div class="stat-label">Cửa hàng</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon violations">⚠️</div>
+          <div class="stat-content">
+            <div class="stat-value" id="total-violations">0</div>
+            <div class="stat-label">Vi phạm</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon rewards">🏆</div>
+          <div class="stat-content">
+            <div class="stat-value" id="total-rewards">0</div>
+            <div class="stat-label">Khen thưởng</div>
+          </div>
         </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon rewards">🏆</div>
-        <div class="stat-content">
-          <div class="stat-value" id="total-rewards">0</div>
-          <div class="stat-label">Khen thưởng</div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">Top 5 Vi phạm nhiều nhất</div>
+        <div id="top-violations" style="font-size: 12px;">
+          <!-- Will be populated by JS -->
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-title">Chỉ tiêu mức độ</div>
+        <div class="risk-gradient"></div>
+        <div class="risk-labels">
+          <span>0 vi phạm</span>
+          <span>1-2</span>
+          <span>3-4</span>
+          <span>5+</span>
         </div>
       </div>
     </div>
 
-    <div class="sidebar-section">
-      <div class="sidebar-title">Top 5 Vi phạm nhiều nhất</div>
-      <div id="top-violations" style="font-size: 12px;">
-        <!-- Will be populated by JS -->
-      </div>
-    </div>
+    <!-- Map -->
+    <div id="map"></div>
 
-    <div class="sidebar-section">
-      <div class="sidebar-title">Chỉ tiêu mức độ</div>
-      <div class="risk-gradient"></div>
-      <div class="risk-labels">
-        <span>0 vi phạm</span>
-        <span>1-2</span>
-        <span>3-4</span>
-        <span>5+</span>
-      </div>
-    </div>
-  </div>
+    <script>
+      // Config
+      const SHEET_ID = '1wwjXmvOrNn4G7uNdAGPwwa2RpTvfYrRASzAD5PNpbEE';
+      const MAIL_SHEET_ID = '1Eea0RMfjsrv_JrCadKxdVWvYdsm14riZYtNcuUWOii0';
+      const CSV_STORES = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
+      const CSV_EVENTS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=484651391`;
+      const CSV_HIGHLIGHTS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=1234567890`; // Update with correct gid
+      const CSV_MAIL = `https://docs.google.com/spreadsheets/d/${MAIL_SHEET_ID}/export?format=csv&gid=291208241`;
 
-  <!-- Map -->
-  <div id="map"></div>
+      // UI Config
+      const ZOOM_THRESHOLD = 10; // Zoom level to show store names (Higher = Closer)
 
-  <script>
-    // Config
-    const SHEET_ID = '1wwjXmvOrNn4G7uNdAGPwwa2RpTvfYrRASzAD5PNpbEE';
-    const MAIL_SHEET_ID = '1Eea0RMfjsrv_JrCadKxdVWvYdsm14riZYtNcuUWOii0';
-    const CSV_STORES = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
-    const CSV_EVENTS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=484651391`;
-    const CSV_HIGHLIGHTS = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=1234567890`; // Update with correct gid
-    const CSV_MAIL = `https://docs.google.com/spreadsheets/d/${MAIL_SHEET_ID}/export?format=csv&gid=291208241`;
+      let map, STORES_DATA = [], EVENTS_DATA = [], HIGHLIGHTS_DATA = [], markers = [];
+      let currentTimeFilter = 'all', currentDisplayFilter = 'all';
+      let searchTimeout;
 
-    // UI Config
-    const ZOOM_THRESHOLD = 10; // Zoom level to show store names (Higher = Closer)
-
-    let map, STORES_DATA = [], EVENTS_DATA = [], HIGHLIGHTS_DATA = [], markers = [];
-    let currentTimeFilter = 'all', currentDisplayFilter = 'all';
-    let searchTimeout;
-
-    // Session Check
-    window.onload = () => {
-      const email = localStorage.getItem('yody_user');
-      if (email) {
-        initDashboard();
-      } else {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('login-screen').style.display = 'flex';
-      }
-    };
-
-    async function handleLogin() {
-      const email = document.getElementById('email-input').value.trim().toLowerCase();
-      const error = document.getElementById('login-error');
-
-      if (!email.endsWith('@yody.vn')) {
-        error.textContent = 'Chỉ chấp nhận email @yody.vn';
-        error.style.display = 'block';
-        return;
-      }
-
-      try {
-        const whitelist = await fetchCSV(CSV_MAIL);
-        const isAuthorized = whitelist.some(row =>
-          Object.values(row).some(val => val.toString().toLowerCase().trim() === email)
-        );
-
-        if (isAuthorized) {
-          localStorage.setItem('yody_user', email);
-          location.reload();
+      // Session Check
+      window.onload = () => {
+        const email = localStorage.getItem('yody_user');
+        if (email) {
+          initDashboard();
         } else {
-          error.textContent = 'Email không có quyền truy cập';
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('login-screen').style.display = 'flex';
+        }
+      };
+
+      async function handleLogin() {
+        const email = document.getElementById('email-input').value.trim().toLowerCase();
+        const error = document.getElementById('login-error');
+
+        if (!email.endsWith('@yody.vn')) {
+          error.textContent = 'Chỉ chấp nhận email @yody.vn';
+          error.style.display = 'block';
+          return;
+        }
+
+        try {
+          const whitelist = await fetchCSV(CSV_MAIL);
+          const isAuthorized = whitelist.some(row =>
+            Object.values(row).some(val => val.toString().toLowerCase().trim() === email)
+          );
+
+          if (isAuthorized) {
+            localStorage.setItem('yody_user', email);
+            location.reload();
+          } else {
+            error.textContent = 'Email không có quyền truy cập';
+            error.style.display = 'block';
+          }
+        } catch (e) {
+          error.textContent = 'Lỗi kết nối';
           error.style.display = 'block';
         }
-      } catch (e) {
-        error.textContent = 'Lỗi kết nối';
-        error.style.display = 'block';
       }
-    }
 
-    async function initDashboard() {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('loading').style.display = 'flex';
+      async function initDashboard() {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('loading').style.display = 'flex';
 
-      // Init Map
-      map = L.map('map', { zoomControl: false }).setView([16.0, 107.5], 6);
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-      L.control.zoom({ position: 'bottomleft' }).addTo(map);
+        // Init Map
+        map = L.map('map', { zoomControl: false }).setView([16.0, 107.5], 6);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+        L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
-      // Load Vietnam Border
-      try {
-        const response = await fetch('https://cdn.jsdelivr.net/gh/Vizzuality/growasia_calculator@master/public/vietnam.geojson');
-        const vnGeoJSON = await response.json();
-        L.geoJSON(vnGeoJSON, {
-          style: { color: '#00ff88', weight: 2, fillOpacity: 0, opacity: 0.8 }
-        }).addTo(map);
-      } catch (e) { }
-
-      // Sovereignty: Hoang Sa & Truong Sa
-
-      // PATCH: Cover "Biển Đông" / "South China Sea" label
-      // Uses a blurry dark box to mask the base map label
-      // Adjusted position and size for better coverage
-      const patchIcon = L.divIcon({
-        className: 'map-patch',
-        html: '<div style="background: #212121; width: 300px; height: 100px; transform: rotate(-25deg); filter: blur(15px); opacity: 0.9;"></div>',
-        iconSize: [300, 100],
-        iconAnchor: [150, 50]
-      });
-      L.marker([14.5, 114.0], { icon: patchIcon, interactive: false, zIndexOffset: -100 }).addTo(map);
-
-      const islands = [
-        { name: "Quần đảo Hoàng Sa", coords: [16.4, 112.0] },
-        { name: "Quần đảo Trường Sa", coords: [10.0, 114.0] }
-      ];
-
-      islands.forEach(island => {
-        L.marker(island.coords, {
-          icon: L.divIcon({
-            className: 'map-label',
-            html: island.name,
-            iconSize: [200, 20],
-            iconAnchor: [100, 10]
-          }),
-          interactive: false
-        }).addTo(map);
-      });
-
-      // Zoom Listeners (Store Names)
-      map.on('zoomend', () => {
-        const zoom = map.getZoom();
-        // Use >= so it shows AT the threshold level (15), not just > 15
-        if (zoom >= ZOOM_THRESHOLD) {
-          document.getElementById('map').classList.add('show-names');
-        } else {
-          document.getElementById('map').classList.remove('show-names');
-        }
-      });
-
-      // Load Data
-      await loadData();
-
-      document.getElementById('loading').style.display = 'none';
-    }
-
-    async function loadData() {
-      try {
-        // Load all data
-        const rawStores = await fetchCSV(CSV_STORES);
-        const rawEvents = await fetchCSV(CSV_EVENTS, false); // No header parsing for safer mapping
-
-        // Process Stores (Standard Header)
-        STORES_DATA = rawStores.filter(s => s.ID && s.ID.toString().trim());
-
-        // Process Events (Manual Mapping)
-        // Filter valid rows: Must have enough columns and look like an event (start with EV or have a date)
-        // User confirmed: Col B (Index 1) is Store ID.
-        // Assuming format: [EventID, StoreID, Date, Type, Description]
-        const validEventRows = rawEvents.data.filter(row => {
-          return row.length >= 3 && (row[0] || '').toString().toUpperCase().startsWith('EV');
-        });
-
-        EVENTS_DATA = validEventRows.map(row => ({
-          ID: row[0],
-          Store_ID: row[1], // Column B
-          Date: row[2],     // Column C
-          Type: row[3],
-          Description: row[4]
-        }));
-
-        // Try to load highlights, if fails just continue
+        // Load Vietnam Border
         try {
-          HIGHLIGHTS_DATA = await fetchCSV(CSV_HIGHLIGHTS);
-        } catch (e) {
-          HIGHLIGHTS_DATA = [];
-        }
+          const response = await fetch('https://cdn.jsdelivr.net/gh/Vizzuality/growasia_calculator@master/public/vietnam.geojson');
+          const vnGeoJSON = await response.json();
+          L.geoJSON(vnGeoJSON, {
+            style: { color: '#00ff88', weight: 2, fillOpacity: 0, opacity: 0.8 }
+          }).addTo(map);
+        } catch (e) { }
 
-        console.log('=== LOADED ===');
-        console.log('ZOOM THRESHOLD CONFIG:', ZOOM_THRESHOLD);
-        console.log('Stores:', STORES_DATA.length);
-        console.log('Events:', EVENTS_DATA.length);
-        console.log('\n=== SAMPLES ===');
-        console.log('Store[0]:', STORES_DATA[0]);
-        console.log('Event[0]:', EVENTS_DATA[0]);
+        // Sovereignty: Hoang Sa & Truong Sa
 
-        // Process each store
-        let debugCount = 0;
+        // PATCH: Cover "Biển Đông" / "South China Sea" label
+        // Uses a blurry dark box to mask the base map label
+        // Adjusted position and size for better coverage
+        const patchIcon = L.divIcon({
+          className: 'map-patch',
+          html: '<div style="background: #212121; width: 300px; height: 100px; transform: rotate(-25deg); filter: blur(15px); opacity: 0.9;"></div>',
+          iconSize: [300, 100],
+          iconAnchor: [150, 50]
+        });
+        L.marker([14.5, 114.0], { icon: patchIcon, interactive: false, zIndexOffset: -100 }).addTo(map);
 
-        STORES_DATA.forEach((store, storeIdx) => {
-          const storeID = (store.ID || '').toString().trim();
+        const islands = [
+          { name: "Quần đảo Hoàng Sa", coords: [16.4, 112.0] },
+          { name: "Quần đảo Trường Sa", coords: [10.0, 114.0] }
+        ];
 
-          // Count violations - try multiple matching methods
-          const violations = EVENTS_DATA.filter((event, eventIdx) => {
-            const eventCols = Object.values(event);
-            const eventKeys = Object.keys(event);
-
-            // Try different ways to get Store_ID from event:
-            // Method 1: By index (column B = index 1, but might be 0 if Event_ID is missing header)
-            const storeID_idx0 = (eventCols[0] || '').toString().trim();
-            const storeID_idx1 = (eventCols[1] || '').toString().trim();
-            const storeID_idx2 = (eventCols[2] || '').toString().trim();
-
-            // Method 2: By column name variations
-            const storeID_byName = (
-              event['Store_ID'] ||
-              event['ID'] ||
-              event['StoreID'] ||
-              event['store_id'] ||
-              event[eventKeys[1]] || // Use whatever the second column is named
-              ''
-            ).toString().trim();
-
-            // Check all possible matches
-            const match = storeID_idx0 === storeID ||
-              storeID_idx1 === storeID ||
-              storeID_idx2 === storeID ||
-              storeID_byName === storeID;
-
-            // Debug first 3 events for first 2 stores
-            if (storeIdx < 2 && eventIdx < 3 && debugCount < 10) {
-              console.log(`Store ${storeID} vs Event[${eventIdx}]:`, {
-                eventKeys,
-                eventCols,
-                storeID_idx0,
-                storeID_idx1,
-                storeID_byName,
-                match
-              });
-              debugCount++;
-            }
-
-            return match;
-          });
-
-          // Count highlights with same logic
-          const highlights = HIGHLIGHTS_DATA.filter(highlight => {
-            const highlightCols = Object.values(highlight);
-            const highlightKeys = Object.keys(highlight);
-            const storeID_idx1 = (highlightCols[1] || '').toString().trim();
-            const storeID_byName = (
-              highlight['Store_ID'] ||
-              highlight[highlightKeys[1]] ||
-              ''
-            ).toString().trim();
-            return storeID_idx1 === storeID || storeID_byName === storeID;
-          });
-
-          store.violationCount = violations.length;
-          store.highlightCount = highlights.length;
-
-          store.violations = violations;
-          store.highlights = highlights;
+        islands.forEach(island => {
+          L.marker(island.coords, {
+            icon: L.divIcon({
+              className: 'map-label',
+              html: island.name,
+              iconSize: [200, 20],
+              iconAnchor: [100, 10]
+            }),
+            interactive: false
+          }).addTo(map);
         });
 
-        const withViolations = STORES_DATA.filter(s => s.violationCount > 0).length;
-        const totalViolations = STORES_DATA.reduce((sum, s) => sum + s.violationCount, 0);
-        console.log('\n=== RESULTS ===');
-        console.log('Stores with violations:', withViolations);
-        console.log('Total violations:', totalViolations);
+        // Zoom Listeners (Store Names)
+        map.on('zoomend', () => {
+          const zoom = map.getZoom();
+          // Use >= so it shows AT the threshold level (15), not just > 15
+          if (zoom >= ZOOM_THRESHOLD) {
+            document.getElementById('map').classList.add('show-names');
+          } else {
+            document.getElementById('map').classList.remove('show-names');
+          }
+        });
 
-        updateStats();
-        renderMarkers();
-        renderOMStats();
-        renderNewsTicker();
-      } catch (e) {
-        console.error('Data load error:', e);
-        alert('Không thể tải dữ liệu. Vui lòng kiểm tra quyền truy cập Google Sheets.');
+        // Load Data
+        await loadData();
+
+        document.getElementById('loading').style.display = 'none';
       }
-    }
 
-    function renderOMStats() {
-      // Group violations by OM
-      const omCounts = {};
+      async function loadData() {
+        try {
+          // Load all data
+          const rawStores = await fetchCSV(CSV_STORES);
+          const rawEvents = await fetchCSV(CSV_EVENTS, false); // No header parsing for safer mapping
 
-      STORES_DATA.forEach(store => {
-        if (store.violationCount > 0) {
-          // Extract OM name from Address (Format: OM.Name)
-          // Also handle potential raw format anomalies
-          const address = store.Address || '';
-          let omName = 'Khác';
+          // Process Stores (Standard Header)
+          STORES_DATA = rawStores.filter(s => s.ID && s.ID.toString().trim());
 
-          if (address.includes('OM.')) {
-            const parts = address.split('OM.');
-            if (parts.length > 1) {
-              omName = parts[1].split(',')[0].trim(); // Take name after OM. and before next comma
+          // Process Events (Manual Mapping)
+          // Filter valid rows: Must have enough columns and look like an event (start with EV or have a date)
+          // User confirmed: Col B (Index 1) is Store ID.
+          // Assuming format: [EventID, StoreID, Date, Type, Description]
+          const validEventRows = rawEvents.data.filter(row => {
+            return row.length >= 3 && (row[0] || '').toString().toUpperCase().startsWith('EV');
+          });
+
+          EVENTS_DATA = validEventRows.map(row => ({
+            ID: row[0],
+            Store_ID: row[1], // Column B
+            Date: row[2],     // Column C
+            Type: row[3],
+            Description: row[4]
+          }));
+
+          // Try to load highlights, if fails just continue
+          try {
+            HIGHLIGHTS_DATA = await fetchCSV(CSV_HIGHLIGHTS);
+          } catch (e) {
+            HIGHLIGHTS_DATA = [];
+          }
+
+          console.log('=== LOADED ===');
+          console.log('ZOOM THRESHOLD CONFIG:', ZOOM_THRESHOLD);
+          console.log('Stores:', STORES_DATA.length);
+          console.log('Events:', EVENTS_DATA.length);
+          console.log('\n=== SAMPLES ===');
+          console.log('Store[0]:', STORES_DATA[0]);
+          console.log('Event[0]:', EVENTS_DATA[0]);
+
+          // Process each store
+          let debugCount = 0;
+
+          STORES_DATA.forEach((store, storeIdx) => {
+            const storeID = (store.ID || '').toString().trim();
+
+            // Count violations - try multiple matching methods
+            const violations = EVENTS_DATA.filter((event, eventIdx) => {
+              const eventCols = Object.values(event);
+              const eventKeys = Object.keys(event);
+
+              // Try different ways to get Store_ID from event:
+              // Method 1: By index (column B = index 1, but might be 0 if Event_ID is missing header)
+              const storeID_idx0 = (eventCols[0] || '').toString().trim();
+              const storeID_idx1 = (eventCols[1] || '').toString().trim();
+              const storeID_idx2 = (eventCols[2] || '').toString().trim();
+
+              // Method 2: By column name variations
+              const storeID_byName = (
+                event['Store_ID'] ||
+                event['ID'] ||
+                event['StoreID'] ||
+                event['store_id'] ||
+                event[eventKeys[1]] || // Use whatever the second column is named
+                ''
+              ).toString().trim();
+
+              // Check all possible matches
+              const match = storeID_idx0 === storeID ||
+                storeID_idx1 === storeID ||
+                storeID_idx2 === storeID ||
+                storeID_byName === storeID;
+
+              // Debug first 3 events for first 2 stores
+              if (storeIdx < 2 && eventIdx < 3 && debugCount < 10) {
+                console.log(`Store ${storeID} vs Event[${eventIdx}]:`, {
+                  eventKeys,
+                  eventCols,
+                  storeID_idx0,
+                  storeID_idx1,
+                  storeID_byName,
+                  match
+                });
+                debugCount++;
+              }
+
+              return match;
+            });
+
+            // Count highlights with same logic
+            const highlights = HIGHLIGHTS_DATA.filter(highlight => {
+              const highlightCols = Object.values(highlight);
+              const highlightKeys = Object.keys(highlight);
+              const storeID_idx1 = (highlightCols[1] || '').toString().trim();
+              const storeID_byName = (
+                highlight['Store_ID'] ||
+                highlight[highlightKeys[1]] ||
+                ''
+              ).toString().trim();
+              return storeID_idx1 === storeID || storeID_byName === storeID;
+            });
+
+            store.violationCount = violations.length;
+            store.highlightCount = highlights.length;
+
+            store.violations = violations;
+            store.highlights = highlights;
+          });
+
+          const withViolations = STORES_DATA.filter(s => s.violationCount > 0).length;
+          const totalViolations = STORES_DATA.reduce((sum, s) => sum + s.violationCount, 0);
+          console.log('\n=== RESULTS ===');
+          console.log('Stores with violations:', withViolations);
+          console.log('Total violations:', totalViolations);
+
+          updateStats();
+          renderMarkers();
+          renderOMStats();
+          renderNewsTicker();
+        } catch (e) {
+          console.error('Data load error:', e);
+          alert('Không thể tải dữ liệu. Vui lòng kiểm tra quyền truy cập Google Sheets.');
+        }
+      }
+
+      function renderOMStats() {
+        // Group violations by OM
+        const omCounts = {};
+
+        STORES_DATA.forEach(store => {
+          if (store.violationCount > 0) {
+            // Extract OM name from Address (Format: OM.Name)
+            // Also handle potential raw format anomalies
+            const address = store.Address || '';
+            let omName = 'Khác';
+
+            if (address.includes('OM.')) {
+              const parts = address.split('OM.');
+              if (parts.length > 1) {
+                omName = parts[1].split(',')[0].trim(); // Take name after OM. and before next comma
+              }
+            }
+
+            if (omName) {
+              omCounts[omName] = (omCounts[omName] || 0) + store.violationCount;
             }
           }
+        });
 
-          if (omName) {
-            omCounts[omName] = (omCounts[omName] || 0) + store.violationCount;
-          }
+        // Sort by count desc
+        const sortedOMs = Object.entries(omCounts)
+          .sort((a, b) => b[1] - a[1]);
+
+        const container = document.getElementById('om-list');
+        container.innerHTML = '';
+
+        if (sortedOMs.length === 0) {
+          container.innerHTML = '<div style="color:rgba(255,255,255,0.5); font-size:11px; text-align:center;">Không có dữ liệu</div>';
+          return;
         }
-      });
 
-      // Sort by count desc
-      const sortedOMs = Object.entries(omCounts)
-        .sort((a, b) => b[1] - a[1]);
-
-      const container = document.getElementById('om-list');
-      container.innerHTML = '';
-
-      if (sortedOMs.length === 0) {
-        container.innerHTML = '<div style="color:rgba(255,255,255,0.5); font-size:11px; text-align:center;">Không có dữ liệu</div>';
-        return;
-      }
-
-      sortedOMs.forEach(([name, count]) => {
-        container.innerHTML += `
+        sortedOMs.forEach(([name, count]) => {
+          container.innerHTML += `
           <div class="om-item">
             <span class="om-name">${name}</span>
             <span class="om-count">${count}</span>
           </div>
         `;
-      });
-    }
-
-    function renderNewsTicker() {
-      // Filter events that have dates
-      const validEvents = EVENTS_DATA.filter(e => {
-        const cols = Object.values(e);
-        const dateStr = e['Date'] || cols[2];
-        return dateStr && dateStr.trim().length > 0;
-      });
-
-      // Sort by Date Descending
-      validEvents.sort((a, b) => {
-        const colsA = Object.values(a);
-        const colsB = Object.values(b);
-        const dateA = new Date(a['Date'] || colsA[2]);
-        const dateB = new Date(b['Date'] || colsB[2]);
-        return dateB - dateA;
-      });
-
-      // Take top 5
-      const topEvents = validEvents.slice(0, 5);
-      const container = document.getElementById('ticker-content');
-
-      if (topEvents.length === 0) {
-        container.innerHTML = '<span class="ticker-item">Không có tin tức mới</span>';
-        return;
+        });
       }
 
-      container.innerHTML = topEvents.map(event => {
-        const cols = Object.values(event);
-        const date = event['Date'] || cols[2];
-        const desc = event['Description'] || cols[4] || 'Vi phạm chưa xác định';
-
-        // Find Store Name
-        // Find Store Name - Robust Mapping
-        const storeID_ev = (event['Store_ID'] || cols[1] || '').toString().trim();
-
-        const store = STORES_DATA.find(s => {
-          const sID = (s.ID || Object.values(s)[0] || '').toString().trim();
-          return sID === storeID_ev;
+      function renderNewsTicker() {
+        // Filter events that have dates
+        const validEvents = EVENTS_DATA.filter(e => {
+          const cols = Object.values(e);
+          const dateStr = e['Date'] || cols[2];
+          return dateStr && dateStr.trim().length > 0;
         });
 
-        const storeName = store ? store.Store_Name : `Store #${storeID_ev}`;
-        const storeID = store ? (store.ID || Object.values(store)[0]) : '';
+        // Sort by Date Descending
+        validEvents.sort((a, b) => {
+          const colsA = Object.values(a);
+          const colsB = Object.values(b);
+          const dateA = new Date(a['Date'] || colsA[2]);
+          const dateB = new Date(b['Date'] || colsB[2]);
+          return dateB - dateA;
+        });
 
-        // Snippet
-        let snippet = desc.split(' ').slice(0, 15).join(' ') + '...';
+        // Take top 5
+        const topEvents = validEvents.slice(0, 5);
+        const container = document.getElementById('ticker-content');
 
-        return `
+        if (topEvents.length === 0) {
+          container.innerHTML = '<span class="ticker-item">Không có tin tức mới</span>';
+          return;
+        }
+
+        container.innerHTML = topEvents.map(event => {
+          const cols = Object.values(event);
+          const date = event['Date'] || cols[2];
+          const desc = event['Description'] || cols[4] || 'Vi phạm chưa xác định';
+
+          // Find Store Name
+          // Find Store Name - Robust Mapping
+          const storeID_ev = (event['Store_ID'] || cols[1] || '').toString().trim();
+
+          const store = STORES_DATA.find(s => {
+            const sID = (s.ID || Object.values(s)[0] || '').toString().trim();
+            return sID === storeID_ev;
+          });
+
+          const storeName = store ? store.Store_Name : `Store #${storeID_ev}`;
+          const storeID = store ? (store.ID || Object.values(store)[0]) : '';
+
+          // Snippet
+          let snippet = desc.split(' ').slice(0, 15).join(' ') + '...';
+
+          return `
           <span class="ticker-item" onclick="zoomToStore('${storeID}')">
             <span class="date">[${date}]</span>
             <span class="highlight">${storeName}</span>: ${snippet}
           </span>
         `;
-      }).join(' <span style="margin: 0 10px; color: rgba(255,255,255,0.2)">|</span> ');
-    }
+        }).join(' <span style="margin: 0 10px; color: rgba(255,255,255,0.2)">|</span> ');
+      }
 
-    function zoomToStore(storeId) {
-      console.log('Zooming to store:', storeId);
-      if (!storeId) return;
-      const store = STORES_DATA.find(s => s.ID.toString().trim() === storeId.toString().trim());
-      if (store) {
-        let lat = parseFloat(store.Latitude || 0);
-        let lng = parseFloat(store.Longitude || 0);
-        if (lat && lng) {
-          map.setView([lat, lng], 18);
-          openStorePopup(store);
+      function zoomToStore(storeId) {
+        console.log('Zooming to store:', storeId);
+        if (!storeId) return;
+        const store = STORES_DATA.find(s => s.ID.toString().trim() === storeId.toString().trim());
+        if (store) {
+          let lat = parseFloat(store.Latitude || 0);
+          let lng = parseFloat(store.Longitude || 0);
+          if (lat && lng) {
+            map.setView([lat, lng], 18);
+            openStorePopup(store);
+          } else {
+            console.warn('Store has no coords:', store);
+          }
         } else {
-          console.warn('Store has no coords:', store);
+          console.warn('Store not found for ID:', storeId);
         }
-      } else {
-        console.warn('Store not found for ID:', storeId);
-      }
-    }
-
-    function updateStats() {
-      const totalStores = STORES_DATA.length;
-      const totalViolations = STORES_DATA.reduce((sum, s) => sum + (s.violationCount || 0), 0);
-      const totalHighlights = STORES_DATA.reduce((sum, s) => sum + (s.highlightCount || 0), 0);
-
-      document.getElementById('total-stores').textContent = totalStores;
-      document.getElementById('total-violations').textContent = totalViolations;
-      document.getElementById('total-rewards').textContent = totalHighlights;
-
-      // Update Top 5
-      updateTopViolations();
-    }
-
-    function updateTopViolations() {
-      const topStores = STORES_DATA
-        .filter(s => s.violationCount > 0)
-        .sort((a, b) => b.violationCount - a.violationCount)
-        .slice(0, 5);
-
-      const container = document.getElementById('top-violations');
-      container.innerHTML = '';
-
-      if (topStores.length === 0) {
-        container.innerHTML = '<p style="color: rgba(255,255,255,0.5); font-size: 11px;">Không có vi phạm</p>';
-        return;
       }
 
-      topStores.forEach((store, index) => {
-        const item = document.createElement('div');
-        item.style.cssText = `
+      function updateStats() {
+        const totalStores = STORES_DATA.length;
+        const totalViolations = STORES_DATA.reduce((sum, s) => sum + (s.violationCount || 0), 0);
+        const totalHighlights = STORES_DATA.reduce((sum, s) => sum + (s.highlightCount || 0), 0);
+
+        document.getElementById('total-stores').textContent = totalStores;
+        document.getElementById('total-violations').textContent = totalViolations;
+        document.getElementById('total-rewards').textContent = totalHighlights;
+
+        // Update Top 5
+        updateTopViolations();
+      }
+
+      function updateTopViolations() {
+        const topStores = STORES_DATA
+          .filter(s => s.violationCount > 0)
+          .sort((a, b) => b.violationCount - a.violationCount)
+          .slice(0, 5);
+
+        const container = document.getElementById('top-violations');
+        container.innerHTML = '';
+
+        if (topStores.length === 0) {
+          container.innerHTML = '<p style="color: rgba(255,255,255,0.5); font-size: 11px;">Không có vi phạm</p>';
+          return;
+        }
+
+        topStores.forEach((store, index) => {
+          const item = document.createElement('div');
+          item.style.cssText = `
                     padding: 10px;
                     background: rgba(255,255,255,0.03);
                     border: 1px solid rgba(255,255,255,0.08);
@@ -1373,12 +1609,12 @@
                     cursor: pointer;
                     transition: all 0.2s;
                 `;
-        item.onmouseover = () => item.style.background = 'rgba(255,255,255,0.08)';
-        item.onmouseout = () => item.style.background = 'rgba(255,255,255,0.03)';
+          item.onmouseover = () => item.style.background = 'rgba(255,255,255,0.08)';
+          item.onmouseout = () => item.style.background = 'rgba(255,255,255,0.03)';
 
-        const rankColor = index === 0 ? '#f44336' : index === 1 ? '#ff9800' : index === 2 ? '#ffeb3b' : '#999';
+          const rankColor = index === 0 ? '#f44336' : index === 1 ? '#ff9800' : index === 2 ? '#ffeb3b' : '#999';
 
-        item.innerHTML = `
+          item.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <div style="width: 24px; height: 24px; background: ${rankColor}; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: #000;">${index + 1}</div>
                         <div style="flex: 1; overflow: hidden;">
@@ -1388,87 +1624,87 @@
                     </div>
                 `;
 
-        // Click to zoom to marker
-        // Click to zoom to marker & open details
-        item.onclick = () => {
-          const lat = parseFloat(store.Latitude || 0);
-          const lng = parseFloat(store.Longitude || 0);
-          if (lat && lng) {
-            map.setView([lat, lng], 16);
-            openStorePopup(store);
-          }
-        };
+          // Click to zoom to marker
+          // Click to zoom to marker & open details
+          item.onclick = () => {
+            const lat = parseFloat(store.Latitude || 0);
+            const lng = parseFloat(store.Longitude || 0);
+            if (lat && lng) {
+              map.setView([lat, lng], 16);
+              openStorePopup(store);
+            }
+          };
 
-        container.appendChild(item);
-      });
-    }
-
-    // Popup & Modal Functions
-    let currentStore = null;
-
-    function openStorePopup(store) {
-      currentStore = store;
-      document.getElementById('popup-store-name').textContent = store.Store_Name || 'Cửa hàng';
-      document.getElementById('popup-store-address').textContent = store.Address || '';
-      document.getElementById('tab-violations-count').textContent = store.violationCount || 0;
-      document.getElementById('tab-rewards-count').textContent = store.highlightCount || 0;
-
-      // Sidebar logic: add .open class, ensure we start at list view
-      const popup = document.getElementById('custom-popup');
-      popup.classList.remove('show-detail'); // Reset to list view
-      popup.classList.add('open');
-
-      document.getElementById('popup-overlay').style.display = 'none';
-
-      switchTab('violations');
-    }
-
-    function closePopup() {
-      document.getElementById('custom-popup').classList.remove('open');
-    }
-
-    let currentTab = 'violations';
-
-    function switchTab(tab) {
-      currentTab = tab;
-
-      // Update UI
-      document.querySelectorAll('.popup-tab').forEach(el => el.classList.remove('active'));
-      document.querySelector(`.popup-tab.${tab}`).classList.add('active');
-
-      const body = document.getElementById('popup-body');
-      body.innerHTML = '';
-
-      const items = tab === 'violations' ? currentStore.violations : currentStore.highlights;
-
-      if (!items || items.length === 0) {
-        body.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">Không có dữ liệu</div>';
-        return;
+          container.appendChild(item);
+        });
       }
 
-      items.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'item-card';
+      // Popup & Modal Functions
+      let currentStore = null;
 
-        // Use Description for Title (Snippet) if Violation Type is generic/missing
-        const cols = Object.values(item);
-        // Column mapping based on observation: 0:ID, 2:Date, 4:Desc
-        let fullDesc = item['Description'] || cols[4] || '';
+      function openStorePopup(store) {
+        currentStore = store;
+        document.getElementById('popup-store-name').textContent = store.Store_Name || 'Cửa hàng';
+        document.getElementById('popup-store-address').textContent = store.Address || '';
+        document.getElementById('tab-violations-count').textContent = store.violationCount || 0;
+        document.getElementById('tab-rewards-count').textContent = store.highlightCount || 0;
 
-        // Fallback title logic
-        let type = tab === 'violations' ? (item['Violation_Type'] || 'Vi phạm') : (item['Type'] || 'Khen thưởng');
-        let date = item['Date'] || cols[2] || '';
+        // Sidebar logic: add .open class, ensure we start at list view
+        const popup = document.getElementById('custom-popup');
+        popup.classList.remove('show-detail'); // Reset to list view
+        popup.classList.add('open');
 
-        // Smart Title: First 10 words of description
-        let shortTitle = fullDesc.split(' ').slice(0, 10).join(' ');
-        if (fullDesc.length > shortTitle.length) shortTitle += '...';
+        document.getElementById('popup-overlay').style.display = 'none';
 
-        // If description is empty, fallback to type + ID
-        if (!shortTitle.trim()) {
-          shortTitle = `${type} #${item['ID'] || cols[0] || ''}`;
+        switchTab('violations');
+      }
+
+      function closePopup() {
+        document.getElementById('custom-popup').classList.remove('open');
+      }
+
+      let currentTab = 'violations';
+
+      function switchTab(tab) {
+        currentTab = tab;
+
+        // Update UI
+        document.querySelectorAll('.popup-tab').forEach(el => el.classList.remove('active'));
+        document.querySelector(`.popup-tab.${tab}`).classList.add('active');
+
+        const body = document.getElementById('popup-body');
+        body.innerHTML = '';
+
+        const items = tab === 'violations' ? currentStore.violations : currentStore.highlights;
+
+        if (!items || items.length === 0) {
+          body.innerHTML = '<div style="text-align: center; color: rgba(255,255,255,0.5); padding: 20px;">Không có dữ liệu</div>';
+          return;
         }
 
-        card.innerHTML = `
+        items.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'item-card';
+
+          // Use Description for Title (Snippet) if Violation Type is generic/missing
+          const cols = Object.values(item);
+          // Column mapping based on observation: 0:ID, 2:Date, 4:Desc
+          let fullDesc = item['Description'] || cols[4] || '';
+
+          // Fallback title logic
+          let type = tab === 'violations' ? (item['Violation_Type'] || 'Vi phạm') : (item['Type'] || 'Khen thưởng');
+          let date = item['Date'] || cols[2] || '';
+
+          // Smart Title: First 10 words of description
+          let shortTitle = fullDesc.split(' ').slice(0, 10).join(' ');
+          if (fullDesc.length > shortTitle.length) shortTitle += '...';
+
+          // If description is empty, fallback to type + ID
+          if (!shortTitle.trim()) {
+            shortTitle = `${type} #${item['ID'] || cols[0] || ''}`;
+          }
+
+          card.innerHTML = `
           <div class="item-title">
             <span>${shortTitle}</span>
           </div>
@@ -1478,219 +1714,302 @@
           </div>
         `;
 
-        card.onclick = () => showDetail(item);
-        body.appendChild(card);
-      });
-    }
+          card.onclick = () => showDetail(item);
+          body.appendChild(card);
+        });
+      }
 
-    function showDetail(item) {
-      const body = document.getElementById('detail-body');
-      body.innerHTML = '';
+      function showDetail(item) {
+        const body = document.getElementById('detail-body');
+        body.innerHTML = '';
 
-      // Auto-generate fields
-      for (const [key, val] of Object.entries(item)) {
-        if (!val || val.toString().trim() === '') continue;
+        // Auto-generate fields
+        for (const [key, val] of Object.entries(item)) {
+          if (!val || val.toString().trim() === '') continue;
 
-        const field = document.createElement('div');
-        field.className = 'field'; // Re-use existing class or new .detail-field
-        field.innerHTML = `
+          const field = document.createElement('div');
+          field.className = 'field'; // Re-use existing class or new .detail-field
+          field.innerHTML = `
           <div class="detail-label">${key.replace(/_/g, ' ')}</div>
           <div class="detail-value">${val}</div>
         `;
-        body.appendChild(field); // Re-using .field CSS
+          body.appendChild(field); // Re-using .field CSS
+        }
+
+        // Slide to detail view
+        document.getElementById('custom-popup').classList.add('show-detail');
       }
 
-      // Slide to detail view
-      document.getElementById('custom-popup').classList.add('show-detail');
-    }
+      function backToList() {
+        document.getElementById('custom-popup').classList.remove('show-detail');
+      }
 
-    function backToList() {
-      document.getElementById('custom-popup').classList.remove('show-detail');
-    }
+      function renderMarkers() {
+        // Clear existing
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
 
-    function renderMarkers() {
-      // Clear existing
-      markers.forEach(m => map.removeLayer(m));
-      markers = [];
+        STORES_DATA.forEach(store => {
+          // Filter logic
+          if (currentDisplayFilter === 'violations' && (!store.violationCount || store.violationCount === 0)) return;
+          if (currentDisplayFilter === 'clean' && store.violationCount && store.violationCount > 0) return;
 
-      STORES_DATA.forEach(store => {
-        // Filter logic
-        if (currentDisplayFilter === 'violations' && (!store.violationCount || store.violationCount === 0)) return;
-        if (currentDisplayFilter === 'clean' && store.violationCount && store.violationCount > 0) return;
+          // Get coordinates - use exact column names
+          let lat = parseFloat(store.Latitude || 0);
+          let lng = parseFloat(store.Longitude || 0);
 
-        // Get coordinates - use exact column names
-        let lat = parseFloat(store.Latitude || 0);
-        let lng = parseFloat(store.Longitude || 0);
+          if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
+            console.warn('Invalid coords for store:', store.Store_Name, lat, lng);
+            return;
+          }
 
-        if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) {
-          console.warn('Invalid coords for store:', store.Store_Name, lat, lng);
+          const count = store.violationCount || 0;
+          const markerColor = count === 0 ? 'marker-green' :
+            count <= 2 ? 'marker-yellow' :
+              count <= 4 ? 'marker-orange' : 'marker-red';
+
+          const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div class="marker-circle ${markerColor}">${count}</div>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+          });
+
+          const marker = L.marker([lat, lng], { icon }).addTo(map);
+
+          // Bind Tooltip for Store Name (visible on zoom)
+          marker.bindTooltip(store.Store_Name || 'Cửa hàng', {
+            permanent: true,
+            direction: 'top',
+            className: 'store-label-tooltip',
+            offset: [0, -16]
+          });
+
+          // Use Custom Popup -> Sidebar
+          marker.on('click', () => {
+            openStorePopup(store);
+            map.setView([lat, lng], 16); // High zoom
+          });
+
+          markers.push(marker);
+        });
+
+        console.log('Rendered markers (Custom Popup v2):', markers.length);
+      }
+
+      function setDisplayFilter(filter) {
+        currentDisplayFilter = filter;
+        document.querySelectorAll('.sidebar-section:nth-child(1) .filter-option').forEach((el, i) => {
+          el.classList.toggle('active', ['all', 'violations', 'clean'][i] === filter);
+        });
+        renderMarkers();
+      }
+
+      function fetchCSV(url, header = true) {
+        return new Promise((resolve, reject) => {
+          Papa.parse(url, {
+            download: true,
+            header: header,
+            skipEmptyLines: true,
+            complete: (results) => {
+              if (header) resolve(results.data);
+              else resolve(results); // Return full result for manual handling
+            },
+            error: (err) => reject(err)
+          });
+        });
+      }
+      // Search Functionality
+      function handleSearch(query) {
+        clearTimeout(searchTimeout);
+        const resultsContainer = document.getElementById('search-results');
+
+        if (!query || query.trim().length === 0) {
+          resultsContainer.classList.remove('active');
           return;
         }
 
-        const count = store.violationCount || 0;
-        const markerColor = count === 0 ? 'marker-green' :
-          count <= 2 ? 'marker-yellow' :
-            count <= 4 ? 'marker-orange' : 'marker-red';
+        searchTimeout = setTimeout(() => {
+          const searchTerm = query.toLowerCase().trim();
+          const matches = STORES_DATA.filter(store => {
+            const name = (store.Store_Name || '').toLowerCase();
+            const address = (store.Address || '').toLowerCase();
+            return name.includes(searchTerm) || address.includes(searchTerm);
+          }).slice(0, 10); // Limit to 10 results
 
-        const icon = L.divIcon({
-          className: 'custom-marker',
-          html: `<div class="marker-circle ${markerColor}">${count}</div>`,
-          iconSize: [32, 32],
-          iconAnchor: [16, 16]
-        });
-
-        const marker = L.marker([lat, lng], { icon }).addTo(map);
-
-        // Bind Tooltip for Store Name (visible on zoom)
-        marker.bindTooltip(store.Store_Name || 'Cửa hàng', {
-          permanent: true,
-          direction: 'top',
-          className: 'store-label-tooltip',
-          offset: [0, -16]
-        });
-
-        // Use Custom Popup -> Sidebar
-        marker.on('click', () => {
-          openStorePopup(store);
-          map.setView([lat, lng], 16); // High zoom
-        });
-
-        markers.push(marker);
-      });
-
-      console.log('Rendered markers (Custom Popup v2):', markers.length);
-    }
-
-    function setDisplayFilter(filter) {
-      currentDisplayFilter = filter;
-      document.querySelectorAll('.sidebar-section:nth-child(1) .filter-option').forEach((el, i) => {
-        el.classList.toggle('active', ['all', 'violations', 'clean'][i] === filter);
-      });
-      renderMarkers();
-    }
-
-    function fetchCSV(url, header = true) {
-      return new Promise((resolve, reject) => {
-        Papa.parse(url, {
-          download: true,
-          header: header,
-          skipEmptyLines: true,
-          complete: (results) => {
-            if (header) resolve(results.data);
-            else resolve(results); // Return full result for manual handling
-          },
-          error: (err) => reject(err)
-        });
-      });
-    }
-    // Search Functionality
-    function handleSearch(query) {
-      clearTimeout(searchTimeout);
-      const resultsContainer = document.getElementById('search-results');
-
-      if (!query || query.trim().length === 0) {
-        resultsContainer.classList.remove('active');
-        return;
-      }
-
-      searchTimeout = setTimeout(() => {
-        const searchTerm = query.toLowerCase().trim();
-        const matches = STORES_DATA.filter(store => {
-          const name = (store.Store_Name || '').toLowerCase();
-          const address = (store.Address || '').toLowerCase();
-          return name.includes(searchTerm) || address.includes(searchTerm);
-        }).slice(0, 10); // Limit to 10 results
-
-        if (matches.length > 0) {
-          resultsContainer.innerHTML = matches.map(store => `
+          if (matches.length > 0) {
+            resultsContainer.innerHTML = matches.map(store => `
             <div class="search-item" onclick="selectSearchStore('${store.ID}')">
               <div>${store.Store_Name}</div>
               <div class="sub-text">${store.Address || 'Không có địa chỉ'}</div>
             </div>
           `).join('');
-          resultsContainer.classList.add('active');
-        } else {
-          resultsContainer.innerHTML = `
+            resultsContainer.classList.add('active');
+          } else {
+            resultsContainer.innerHTML = `
             <div class="search-item" style="cursor: default; opacity: 0.5;">
               Không tìm thấy kết quả
             </div>
           `;
-          resultsContainer.classList.add('active');
+            resultsContainer.classList.add('active');
+          }
+        }, 300);
+      }
+
+      function selectSearchStore(storeId) {
+        const store = STORES_DATA.find(s => s.ID.toString() === storeId.toString());
+        if (store) {
+          // Zoom to store
+          let lat = parseFloat(store.Latitude || 0);
+          let lng = parseFloat(store.Longitude || 0);
+
+          if (lat && lng) {
+            map.setView([lat, lng], 18); // Zoom very close
+            openStorePopup(store);
+
+            // Clear search
+            document.getElementById('store-search').value = '';
+            document.getElementById('search-results').classList.remove('active');
+          } else {
+            alert('Cửa hàng này chưa có tọa độ trên bản đồ');
+          }
         }
-      }, 300);
-    }
+      }
 
-    function selectSearchStore(storeId) {
-      const store = STORES_DATA.find(s => s.ID.toString() === storeId.toString());
-      if (store) {
-        // Zoom to store
-        let lat = parseFloat(store.Latitude || 0);
-        let lng = parseFloat(store.Longitude || 0);
-
-        if (lat && lng) {
-          map.setView([lat, lng], 18); // Zoom very close
-          openStorePopup(store);
-
-          // Clear search
-          document.getElementById('store-search').value = '';
+      // Close search when clicking outside
+      document.addEventListener('click', (e) => {
+        const searchContainer = document.querySelector('.sidebar-search');
+        if (!searchContainer.contains(e.target)) {
           document.getElementById('search-results').classList.remove('active');
-        } else {
-          alert('Cửa hàng này chưa có tọa độ trên bản đồ');
         }
+      });
+    </script>
+
+    <!-- Custom Popup (Right Sidebar) -->
+    <div class="popup-overlay" id="popup-overlay" onclick="closePopup()"></div>
+
+    <div id="custom-popup">
+      <!-- View Container -->
+      <div id="popup-views">
+
+        <!-- List View (Default) -->
+        <div id="view-list" class="view-section">
+          <div class="popup-header">
+            <button class="popup-close" onclick="closePopup()">✕</button>
+            <h3 id="popup-store-name"></h3>
+            <div class="address" id="popup-store-address"></div>
+          </div>
+
+          <div class="popup-tabs">
+            <div class="popup-tab violations active" onclick="switchTab('violations')">
+              ⚠️ Vi phạm (<span id="tab-violations-count">0</span>)
+            </div>
+            <div class="popup-tab rewards" onclick="switchTab('rewards')">
+              🏆 Khen thưởng (<span id="tab-rewards-count">0</span>)
+            </div>
+          </div>
+
+          <div class="popup-body" id="popup-body"></div>
+        </div>
+
+        <!-- Detail View (Slides in) -->
+        <div id="view-detail" class="view-section">
+          <div class="popup-header">
+            <button class="popup-close" onclick="closePopup()">✕</button>
+            <button class="back-btn" onclick="backToList()">
+              ← Quay lại
+            </button>
+            <h3 id="detail-header-title">Chi tiết vi phạm</h3>
+          </div>
+          <div class="detail-body" id="detail-body"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div> <!-- End MAP VIEW -->
+
+  <script>
+    // --- PORTAL JS ---
+    function switchView(viewId) {
+      // Hide all containers
+      document.querySelectorAll('.view-container').forEach(el => {
+        el.classList.remove('active');
+        el.style.opacity = '0';
+        setTimeout(() => {
+          if (!el.classList.contains('active')) el.style.display = 'none';
+        }, 300);
+      });
+
+      // Show target
+      const target = document.getElementById(`view-${viewId}`);
+      if (target) {
+        target.style.display = 'block';
+        setTimeout(() => target.classList.add('active'), 10);
+        target.style.opacity = '1';
       }
+
+      // Update Nav
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      // active class logic for nav items
+      const navIcon = viewId === 'wall' ? '📰' : viewId === 'map' ? '🗺️' : '';
+      // Simple match by onclick text for now or by index
+      const navItems = document.querySelectorAll('.nav-item');
+      if (viewId === 'wall') navItems[0].classList.add('active');
+      if (viewId === 'map') navItems[1].classList.add('active');
     }
 
-    // Close search when clicking outside
-    document.addEventListener('click', (e) => {
-      const searchContainer = document.querySelector('.sidebar-search');
-      if (!searchContainer.contains(e.target)) {
-        document.getElementById('search-results').classList.remove('active');
+    // Mock Wall Data
+    const WALL_STORIES = [
+      {
+        title: "Gương Liêm Chính Tháng 10: Store Manager YODY Bắc Giang",
+        tag: "Gương Liêm Chính",
+        img: "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        excerpt: "Đã chủ động báo cáo và xử lý tình huống khách hàng để quên 50 triệu đồng tài sản, thể hiện tinh thần Integrity tuyệt đối."
+      },
+      {
+        title: "Bài học Rủi ro: Quy trình nhập kho và kiểm kê",
+        tag: "Bài học",
+        img: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        excerpt: "Tổng hợp các lỗi thường gặp trong quá trình kiểm kê hàng hóa tại cửa hàng và cách phòng tránh thất thoát."
+      },
+      {
+        title: "Thông báo: Phát động chiến dịch 'Vì YODY Minh Bạch'",
+        tag: "Thông báo",
+        img: "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        excerpt: "Chiến dịch toàn diện nhằm nâng cao nhận thức về tuân thủ quy trình và đạo đức nghề nghiệp."
+      },
+      {
+        title: "Vinh danh: Top 5 Cửa hàng Tuân thủ Xuất sắc Q3",
+        tag: "Vinh danh",
+        img: "https://images.unsplash.com/photo-1531545514256-b1400bc00f31?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80",
+        excerpt: "Chúc mừng các tập thể đã đạt điểm số tuân thủ tuyệt đối trong quý vừa qua."
       }
-    });
+    ];
+
+    // Render Wall
+    function renderWall() {
+      const grid = document.getElementById('wall-grid');
+      grid.innerHTML = WALL_STORIES.map(story => `
+            <div class="news-card">
+                <img src="${story.img}" class="news-img">
+                <div class="news-content">
+                    <span class="news-tag">${story.tag}</span>
+                    <div class="news-title">${story.title}</div>
+                    <div class="news-excerpt">${story.excerpt}</div>
+                    <div class="news-footer">
+                        <span>20/01/2026</span>
+                        <span>❤️ 24</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Call Render
+    renderWall();
+
   </script>
-
-  <!-- Custom Popup (Right Sidebar) -->
-  <div class="popup-overlay" id="popup-overlay" onclick="closePopup()"></div>
-
-  <div id="custom-popup">
-    <!-- View Container -->
-    <div id="popup-views">
-
-      <!-- List View (Default) -->
-      <div id="view-list" class="view-section">
-        <div class="popup-header">
-          <button class="popup-close" onclick="closePopup()">✕</button>
-          <h3 id="popup-store-name"></h3>
-          <div class="address" id="popup-store-address"></div>
-        </div>
-
-        <div class="popup-tabs">
-          <div class="popup-tab violations active" onclick="switchTab('violations')">
-            ⚠️ Vi phạm (<span id="tab-violations-count">0</span>)
-          </div>
-          <div class="popup-tab rewards" onclick="switchTab('rewards')">
-            🏆 Khen thưởng (<span id="tab-rewards-count">0</span>)
-          </div>
-        </div>
-
-        <div class="popup-body" id="popup-body"></div>
-      </div>
-
-      <!-- Detail View (Slides in) -->
-      <div id="view-detail" class="view-section">
-        <div class="popup-header">
-          <button class="popup-close" onclick="closePopup()">✕</button>
-          <button class="back-btn" onclick="backToList()">
-            ← Quay lại
-          </button>
-          <h3 id="detail-header-title">Chi tiết vi phạm</h3>
-        </div>
-        <div class="detail-body" id="detail-body"></div>
-      </div>
-
-    </div>
-  </div>
-
 </body>
 
 </html>
