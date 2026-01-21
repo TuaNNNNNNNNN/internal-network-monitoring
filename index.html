@@ -2622,33 +2622,17 @@
   <section id="report-section">
     <div class="report-box">
       <div class="report-title">Gửi phản ánh ẩn danh</div>
-      <form id="report-form" onsubmit="handleSubmitReport(event)">
-        <div class="form-group">
-          <label class="form-label">Tiêu đề phản ánh</label>
-          <input type="text" class="form-input" placeholder="Ví dụ: Vi phạm quy trình kho..." required>
-        </div>
 
-        <div class="form-group">
-          <label class="form-label">Địa điểm / Cửa hàng</label>
-          <input type="text" class="form-input" placeholder="Kho tổng HB, YODY Hải Dương..." required>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Nội dung chi tiết</label>
-          <textarea class="form-textarea" placeholder="Mô tả sự việc, thời gian, người liên quan..."
-            required></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Link bằng chứng (Ảnh/Video Drive)</label>
-          <input type="text" class="form-input" placeholder="Dán link Google Drive hoặc ảnh vào đây...">
-        </div>
-
-        <button type="submit" class="form-submit">GỬI BÁO CÁO</button>
-      </form>
+      <!-- Embedded Google Form -->
+      <iframe
+        src="https://docs.google.com/forms/d/e/1FAIpQLSfMJGXqCQ-hA2g03hT6qzzhpJs1bJZav9mbSmCan2q5rs/viewform?embedded=true"
+        width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0"
+        style="border-radius: 12px; background: transparent;">
+        Đang tải form...
+      </iframe>
 
       <!-- Note about integration -->
-      <p style="text-align:center; font-size:11px; margin-top:20px; color:rgba(255,255,255,0.3);">
+      <p style="text-align:center; font-size:11px; margin-top:20px; color:var(--text-muted);">
         * Dữ liệu được bảo mật và gửi trực tiếp về Ban kiểm soát.
       </p>
     </div>
