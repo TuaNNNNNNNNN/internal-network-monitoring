@@ -412,7 +412,8 @@
     }
 
     #custom-popup {
-      position: fixed;
+      position: absolute;
+      /* Changed to absolute to stay inside map section */
       top: 0;
       right: 0;
       bottom: 0;
@@ -1190,14 +1191,6 @@
 
   <!-- MAP SECTION -->
   <section id="map-section" class="view-container">
-    "Tại YODY, chúng tôi hiểu rằng trong quá trình làm việc, có thể phát sinh những điều chưa phù hợp với giá trị
-    cốt lõi, quy chuẩn văn hóa hoặc các hành vi khiến bạn băn khoăn.
-    <br><br>
-    Mỗi góp ý, mỗi phản ánh từ bạn không chỉ giúp phát hiện và ngăn chặn kịp thời những sai lệch mà còn là động lực
-    mạnh mẽ để YODY ngày càng hoàn thiện hơn. Đây là cách chúng ta cùng nhau xây dựng một môi trường làm việc minh
-    bạch – công bằng – nhân văn, đồng thời đóng góp thêm nhiều giá trị tích cực cho xã hội và cộng đồng.
-    <br><br>
-    /* Fixed premature close here */
     <div id="map-ui-container" style="position: relative; width: 100%; height: 100%;">
 
       <!-- News Ticker -->
@@ -1311,6 +1304,39 @@
 
       <!-- Map -->
       <div id="map"></div>
+
+      <!-- Custom Popup (Note: Moved here to be inside relative container) -->
+      <div class="popup-overlay" id="popup-overlay" onclick="closePopup()"></div>
+      <div id="custom-popup">
+        <div id="popup-views">
+          <!-- List View -->
+          <div id="view-list" class="view-section">
+            <div class="popup-header">
+              <button class="popup-close" onclick="closePopup()">✕</button>
+              <h3 id="popup-store-name"></h3>
+              <div class="address" id="popup-store-address"></div>
+            </div>
+            <div class="popup-tabs">
+              <div class="popup-tab violations active" onclick="switchTab('violations')">
+                ⚠️ Vi phạm (<span id="tab-violations-count">0</span>)
+              </div>
+              <div class="popup-tab rewards" onclick="switchTab('rewards')">
+                🏆 Khen thưởng (<span id="tab-rewards-count">0</span>)
+              </div>
+            </div>
+            <div class="popup-body" id="popup-body"></div>
+          </div>
+          <!-- Detail View -->
+          <div id="view-detail" class="view-section">
+            <div class="popup-header">
+              <button class="popup-close" onclick="closePopup()">✕</button>
+              <button class="back-btn" onclick="backToList()">← Quay lại</button>
+              <h3 id="detail-header-title">Chi tiết vi phạm</h3>
+            </div>
+            <div class="detail-body" id="detail-body"></div>
+          </div>
+        </div>
+      </div>
     </div> <!-- End Map UI Container -->
   </section>
 
@@ -1993,47 +2019,7 @@
     });
   </script>
 
-  <!-- Custom Popup (Right Sidebar) -->
-  <div class="popup-overlay" id="popup-overlay" onclick="closePopup()"></div>
 
-  <div id="custom-popup">
-    <!-- View Container -->
-    <div id="popup-views">
-
-      <!-- List View (Default) -->
-      <div id="view-list" class="view-section">
-        <div class="popup-header">
-          <button class="popup-close" onclick="closePopup()">✕</button>
-          <h3 id="popup-store-name"></h3>
-          <div class="address" id="popup-store-address"></div>
-        </div>
-
-        <div class="popup-tabs">
-          <div class="popup-tab violations active" onclick="switchTab('violations')">
-            ⚠️ Vi phạm (<span id="tab-violations-count">0</span>)
-          </div>
-          <div class="popup-tab rewards" onclick="switchTab('rewards')">
-            🏆 Khen thưởng (<span id="tab-rewards-count">0</span>)
-          </div>
-        </div>
-
-        <div class="popup-body" id="popup-body"></div>
-      </div>
-
-      <!-- Detail View (Slides in) -->
-      <div id="view-detail" class="view-section">
-        <div class="popup-header">
-          <button class="popup-close" onclick="closePopup()">✕</button>
-          <button class="back-btn" onclick="backToList()">
-            ← Quay lại
-          </button>
-          <h3 id="detail-header-title">Chi tiết vi phạm</h3>
-        </div>
-        <div class="detail-body" id="detail-body"></div>
-      </div>
-
-    </div>
-  </div>
 
   </section> <!-- End MAP SECTION -->
 
@@ -2041,31 +2027,9 @@
   <section id="report-section">
     <div class="report-box">
       <div class="report-title">Gửi phản ánh ẩn danh</div>
-
-      <form id="report-form" onsubmit="handleSubmitReport(event)">
-        <div class="form-group">
-          <label class="form-label">Tiêu đề phản ánh</label>
-          <input type="text" class="form-input" placeholder="Ví dụ: Vi phạm quy trình kho..." required>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Địa điểm / Cửa hàng</label>
-          <input type="text" class="form-input" placeholder="Kho tổng HB, YODY Hải Dương..." required>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Nội dung chi tiết</label>
-          <textarea class="form-textarea" placeholder="Mô tả sự việc, thời gian, người liên quan..."
-            required></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Link bằng chứng (Ảnh/Video Drive)</label>
-          <input type="text" class="form-input" placeholder="Dán link Google Drive hoặc ảnh vào đây...">
-        </div>
-
-        <button type="submit" class="form-submit">GỬI BÁO CÁO</button>
-      </form>
+      <iframe
+        src="https://docs.google.com/forms/d/e/1FAIpQLScrXACk6KHdNz0kkWKy2FynUR2xz1GIRJdHdbgGhfPPkGYwig/viewform?embedded=true"
+        width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0">Đang tải biểu mẫu...</iframe>
     </div>
   </section>
 
