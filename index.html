@@ -87,7 +87,8 @@
       z-index: 999;
       overflow-y: auto;
       padding: 20px;
-      padding-top: 80px;
+      padding-top: 150px;
+      /* Increased to avoid Header overlap */
     }
 
     .sidebar-section {
@@ -844,7 +845,7 @@
     const CSV_MAIL = `https://docs.google.com/spreadsheets/d/${MAIL_SHEET_ID}/export?format=csv&gid=291208241`;
 
     // UI Config
-    const ZOOM_THRESHOLD = 15; // Zoom level to show store names (Higher = Closer)
+    const ZOOM_THRESHOLD = 8; // Zoom level to show store names (Higher = Closer)
 
     let map, STORES_DATA = [], EVENTS_DATA = [], HIGHLIGHTS_DATA = [], markers = [];
     let currentTimeFilter = 'all', currentDisplayFilter = 'all';
