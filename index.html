@@ -376,21 +376,23 @@
     }
 
     /* Store Names on Zoom */
-    .leaflet-tooltip {
-      background: transparent;
-      border: none;
-      box-shadow: none;
-      color: #fff;
+    .store-label-tooltip {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      color: #fff !important;
       font-weight: 600;
       font-size: 12px;
       text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
       margin-top: -45px !important;
-      opacity: 0;
-      transition: opacity 0.2s;
+      opacity: 0 !important;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
     }
 
-    .show-names .leaflet-tooltip {
-      opacity: 1;
+    .show-names .store-label-tooltip {
+      opacity: 1 !important;
+      visibility: visible;
     }
 
     /* Custom Popup -> Right Sidebar */
