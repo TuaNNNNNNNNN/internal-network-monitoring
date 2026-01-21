@@ -33,26 +33,11 @@
     }
 
     /* Header (Title Block) */
+    /* Header (Title Block) - Now in Sidebar */
     .header {
-      position: absolute;
-      top: 60px;
-      /* Below Ticker (40px) */
-      left: 280px;
-      /* To right of sidebar (260px) */
-      z-index: 1000;
-      background: rgba(15, 20, 35, 0.7);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      padding: 16px 24px;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-      width: 260px;
-      overflow: hidden;
-      white-space: nowrap;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .header-icon {
@@ -1057,7 +1042,8 @@
     /* Map Section Styles */
     #map-section {
       width: 100%;
-      height: 90vh;
+      height: 100vh;
+      /* Extended Height */
       position: relative;
       border-top: 1px solid rgba(255, 255, 255, 0.1);
     }
@@ -1225,16 +1211,16 @@
         </div>
       </div>
 
-      <!-- Header -->
-      <div class="header">
-        <div>
-          <h1>Thư viện Quản trị rủi ro</h1>
-          <div class="header-subtitle">Hệ thống giám sát và phân tích vi phạm toàn diện</div>
-        </div>
-      </div>
+
 
       <!-- Sidebar -->
       <div class="sidebar">
+
+        <!-- Header Moved Inside Sidebar -->
+        <div class="header">
+          <h1>Thư viện Quản trị rủi ro</h1>
+          <div class="header-subtitle">Hệ thống giám sát và phân tích vi phạm toàn diện</div>
+        </div>
 
         <div class="sidebar-search">
           <input type="text" class="search-input" id="store-search" placeholder="🔍 Tìm kiếm cửa hàng..."
@@ -2027,9 +2013,35 @@
   <section id="report-section">
     <div class="report-box">
       <div class="report-title">Gửi phản ánh ẩn danh</div>
-      <iframe
-        src="https://docs.google.com/forms/d/e/1FAIpQLScrXACk6KHdNz0kkWKy2FynUR2xz1GIRJdHdbgGhfPPkGYwig/viewform?embedded=true"
-        width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0">Đang tải biểu mẫu...</iframe>
+      <form id="report-form" onsubmit="handleSubmitReport(event)">
+        <div class="form-group">
+          <label class="form-label">Tiêu đề phản ánh</label>
+          <input type="text" class="form-input" placeholder="Ví dụ: Vi phạm quy trình kho..." required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Địa điểm / Cửa hàng</label>
+          <input type="text" class="form-input" placeholder="Kho tổng HB, YODY Hải Dương..." required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nội dung chi tiết</label>
+          <textarea class="form-textarea" placeholder="Mô tả sự việc, thời gian, người liên quan..."
+            required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Link bằng chứng (Ảnh/Video Drive)</label>
+          <input type="text" class="form-input" placeholder="Dán link Google Drive hoặc ảnh vào đây...">
+        </div>
+
+        <button type="submit" class="form-submit">GỬI BÁO CÁO</button>
+      </form>
+
+      <!-- Note about integration -->
+      <p style="text-align:center; font-size:11px; margin-top:20px; color:rgba(255,255,255,0.3);">
+        * Dữ liệu được bảo mật và gửi trực tiếp về Ban kiểm soát.
+      </p>
     </div>
   </section>
 
