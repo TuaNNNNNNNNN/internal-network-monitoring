@@ -1076,18 +1076,7 @@
       animation-delay: 0.5s;
     }
 
-    [data-theme="tet"] .hero-text::before {
-      content: '恭喜發財';
-      position: absolute;
-      top: -50px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 24px;
-      color: #FFD700;
-      font-weight: bold;
-      letter-spacing: 8px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    }
+
 
     /* Spring Theme Decorations */
     [data-theme="spring"] .hero-section::before {
@@ -1275,6 +1264,55 @@
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
       gap: 24px;
       padding: 0 24px;
+      position: relative;
+    }
+
+    /* News Grid Decorations */
+    [data-theme="tet"] .wall-grid::before {
+      content: '🧧';
+      position: absolute;
+      top: -30px;
+      right: 40px;
+      font-size: 50px;
+      animation: float 3s ease-in-out infinite;
+      z-index: 1;
+    }
+
+    [data-theme="spring"] .wall-grid::before {
+      content: '🌸';
+      position: absolute;
+      top: -20px;
+      left: 30px;
+      font-size: 60px;
+      animation: spin-slow 20s linear infinite;
+      opacity: 0.7;
+    }
+
+    [data-theme="light"] .wall-grid::after {
+      content: '☀️';
+      position: absolute;
+      top: -20px;
+      right: 50px;
+      font-size: 50px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    [data-theme="autumn"] .wall-grid::before {
+      content: '🍂';
+      position: absolute;
+      top: -40px;
+      left: 20%;
+      font-size: 50px;
+      animation: fall 8s linear infinite;
+    }
+
+    [data-theme="winter"] .wall-grid::before {
+      content: '❄️';
+      position: absolute;
+      top: -30px;
+      right: 15%;
+      font-size: 40px;
+      animation: snow 10s linear infinite;
     }
 
     .news-card {
@@ -1396,13 +1434,93 @@
 
     /* Report Section Styles */
     #report-section {
-      background: #0f1423;
+      background: var(--bg-color);
       padding: 80px 20px;
       display: flex;
       justify-content: center;
       flex-direction: column;
       align-items: center;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      border-top: 1px solid var(--border-color);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Report Section Decorations */
+    [data-theme="tet"] #report-section::before {
+      content: '🧧🧧';
+      position: absolute;
+      bottom: 40px;
+      left: 30px;
+      font-size: 50px;
+      animation: float 4s ease-in-out infinite;
+      opacity: 0.6;
+    }
+
+    [data-theme="tet"] #report-section::after {
+      content: '🌸';
+      position: absolute;
+      top: 40px;
+      right: 50px;
+      font-size: 60px;
+      animation: float 3.5s ease-in-out infinite;
+      animation-delay: 1s;
+    }
+
+    [data-theme="spring"] #report-section::before {
+      content: '🦋';
+      position: absolute;
+      top: 50px;
+      left: 40px;
+      font-size: 50px;
+      animation: flutter 4s ease-in-out infinite;
+    }
+
+    [data-theme="light"] #report-section::before {
+      content: '🏖️';
+      position: absolute;
+      bottom: 50px;
+      right: 60px;
+      font-size: 60px;
+      opacity: 0.5;
+    }
+
+    [data-theme="autumn"] #report-section::before,
+    [data-theme="autumn"] #report-section::after {
+      content: '🍂';
+      position: absolute;
+      font-size: 50px;
+      animation: fall 10s linear infinite;
+    }
+
+    [data-theme="autumn"] #report-section::before {
+      top: -30px;
+      left: 25%;
+    }
+
+    [data-theme="autumn"] #report-section::after {
+      top: -30px;
+      right: 20%;
+      animation-delay: 3s;
+    }
+
+    [data-theme="winter"] #report-section::before,
+    [data-theme="winter"] #report-section::after {
+      content: '❄️';
+      position: absolute;
+      font-size: 45px;
+      animation: snow 12s linear infinite;
+      opacity: 0.7;
+    }
+
+    [data-theme="winter"] #report-section::before {
+      top: -20px;
+      left: 20%;
+    }
+
+    [data-theme="winter"] #report-section::after {
+      top: -20px;
+      right: 30%;
+      animation-delay: 4s;
     }
 
     .report-box {
