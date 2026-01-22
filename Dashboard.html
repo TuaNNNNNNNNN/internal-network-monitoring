@@ -412,9 +412,18 @@
 
             google.script.run
                 .withSuccessHandler(res => {
+                    if (res.error) {
+                        console.error('Data error:', res.error);
+                        document.getElementById('loading').innerHTML = `<p style="color:var(--danger)">Lỗi: ${res.error}</p>`;
+                        return;
+                    }
                     document.getElementById('loading').style.opacity = '0';
                     setTimeout(() => document.getElementById('loading').style.display = 'none', 500);
                     if (res.stores) renderMarkers(res.stores);
+                })
+                .withFailureHandler(err => {
+                    console.error('Server error:', err);
+                    document.getElementById('loading').innerHTML = `<p style="color:var(--danger)">Lỗi hệ thống: ${err.message || err}</p>`;
                 })
                 .getStoresData();
         }
@@ -459,9 +468,16 @@
             google.script.run
                 .withSuccessHandler(res => {
                     container.innerHTML = '';
+                    if (res.error) {
+                        container.innerHTML = `<p style="color:var(--danger);text-align:center;">${res.error}</p>`;
+                        return;
+                    }
                     if (res.violations) res.violations.forEach(v => container.appendChild(createItem(v, 'Violation')));
                     if (res.rewards) res.rewards.forEach(r => container.appendChild(createItem(r, 'Reward')));
                     if (container.innerHTML === '') container.innerHTML = '<p style="color:var(--text-dim);text-align:center;margin-top:20px;">Không có dữ liệu sự kiện.</p>';
+                })
+                .withFailureHandler(err => {
+                    container.innerHTML = `<p style="color:var(--danger);text-align:center;">Lỗi kết nối: ${err.message || err}</p>`;
                 })
                 .getStoreDetails(store.id);
         }

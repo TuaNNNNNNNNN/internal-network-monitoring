@@ -13,21 +13,36 @@ const COL_STORE_ID = 1;
 const COL_TYPE = 3;          
 const COL_DESCRIPTION = 4;   
 
-// ======== WEB APP ENTRY POINT ========
+// ======== WEB APP API ENTRY POINT ========
 function doGet(e) {
-  const userProperties = PropertiesService.getUserProperties();
-  const loggedInEmail = userProperties.getProperty('loggedInEmail');
-  
-  const templateName = loggedInEmail ? 'Dashboard' : 'Login';
-  return HtmlService.createTemplateFromFile(templateName)
-    .evaluate()
-    .setTitle('Thư viện Quản trị rủi ro')
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  const action = e.parameter.action;
+  let data = { error: 'Invalid action' };
+
+  try {
+    if (action === 'getStoresData') {
+      data = getStoresData();
+    } else if (action === 'getStoreDetails') {
+      data = getStoreDetails(e.parameter.storeId);
+    } else if (action === 'handleLogin') {
+      data = handleLogin(e.parameter.email, e.parameter.ip);
+    } else if (action === 'checkSession') {
+      const userProperties = PropertiesService.getUserProperties();
+      data = { loggedInEmail: userProperties.getProperty('loggedInEmail') };
+    } else if (action === 'logout') {
+      PropertiesService.getUserProperties().deleteProperty('loggedInEmail');
+      data = { success: true };
+    }
+  } catch (err) {
+    data = { error: err.message };
+  }
+
+  return ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
-function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
+function doPost(e) {
+  // Post can also be used if needed
+  return doGet(e);
 }
 
 // ======== AUTHENTICATION ========
@@ -120,7 +135,10 @@ function getStoresData() {
     }).filter(s => !isNaN(s.lat) && !isNaN(s.lng));
 
     return { success: true, stores };
-  } catch (e) { return { error: e.message }; }
+  } catch (e) { 
+    console.error('getStoresData failed:', e.toString());
+    return { error: 'Lỗi tải dữ liệu: ' + e.message }; 
+  }
 }
 
 function getStoreDetails(storeId) {
