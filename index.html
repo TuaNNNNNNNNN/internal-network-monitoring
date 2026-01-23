@@ -1,26 +1,24 @@
 <!DOCTYPE html>
-<html lang="vi" data-theme="dark">
+<html lang="vi">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YODY Internal Network Monitoring</title>
 
-    <!-- Fonts -->
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- PapaParse for CSV -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Leaflet -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
-    <!-- PapaParse (For CSV Fallback) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-
-    <!-- Custom CSS -->
+    <!-- Custom Styles -->
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
@@ -29,17 +27,18 @@
     <!-- LOADING SCREEN -->
     <div id="loading">
         <div class="spinner"></div>
-        <div style="color:#667eea; font-weight:600; margin-top:10px;">Đang tải dữ liệu...</div>
+        <div style="color:var(--accent-color); font-weight:600; margin-top:10px;">Đang tải dữ liệu...</div>
     </div>
 
     <!-- LOGIN SCREEN -->
     <div id="login-screen">
         <div class="login-box">
-            <h2>YODY INTERNAL</h2>
-            <p>Vui lòng đăng nhập bằng email @yody.vn</p>
-            <input type="email" id="email-input" class="login-input" placeholder="nhanvien@yody.vn">
+            <img src="https://yody.vn/images/logo.png" style="height:40px; margin-bottom:20px;">
+            <h2>CHÀO MỪNG TRỞ LẠI</h2>
+            <p>Vui lòng đăng nhập với email @yody.vn</p>
+            <input type="email" class="login-input" id="email-input" placeholder="nhanvien@yody.vn">
             <button class="login-btn" onclick="handleLogin()">ĐĂNG NHẬP</button>
-            <div id="login-error" class="login-error"></div>
+            <div class="login-error" id="login-error"></div>
         </div>
     </div>
 
@@ -49,20 +48,22 @@
             onerror="this.style.display='none'; document.querySelector('.nav-bar').insertAdjacentHTML('afterbegin', '<span style=\'font-weight:900; font-size:24px; color:#fcb900; margin-right:40px;\'>YODY</span>')">
 
         <div class="nav-items">
-            <a href="#home-section" class="nav-item active">TRANG CHỦ</a>
-            <a href="#map-section" class="nav-item">BẢN ĐỒ</a>
-            <a href="#report-section" class="nav-item">BÁO CÁO</a>
+            <div class="nav-item active" onclick="scrollToSection('home-section')">TRANG CHỦ</div>
+            <div class="nav-item" onclick="scrollToSection('map-section')">BẢN ĐỒ</div>
+            <div class="nav-item" onclick="scrollToSection('report-section')">BÁO CÁO</div>
         </div>
 
         <div style="margin-left:auto; display:flex; gap:16px;">
-            <button id="theme-toggle-btn" class="nav-item" style="background:rgba(255,255,255,0.1); border:none;">
-                <span>🌙</span> Giao diện
+            <button id="theme-toggle-btn" class="nav-item"
+                style="background:rgba(255,255,255,0.1); border:none; border-radius:8px; padding:8px 16px;">
+                <span>🌙</span> Tối
             </button>
         </div>
 
-        <!-- Mobile Menu Button -->
-        <button class="mobile-menu-btn" onclick="toggleMobileSidebar()" style="display:none;">
-            <span>☰</span> MEMU
+        <!-- Mobile Menu -->
+        <button class="mobile-menu-btn" onclick="toggleMobileSidebar()"
+            style="display:none; background:none; border:none; color:#fff; font-size:24px; cursor:pointer; margin-left:10px;">
+            ☰
         </button>
     </nav>
 
@@ -76,16 +77,17 @@
     <!-- HOME SECTION -->
     <section id="home-section">
         <div class="hero-section">
-            <img src="https://yody.vn/images/logo.png" class="hero-logo"
-                style="height:60px; filter:brightness(0) invert(1);">
+            <img src="https://yody.vn/images/logo.png" class="hero-logo" style="height:60px;">
             <div class="hero-text">
                 "Cung cấp thông tin nhanh chóng, chính xác về tình hình an ninh, an toàn tại hệ thống cửa hàng YODY."
             </div>
-            <a href="#map-section" class="hero-btn">XEM BẢN ĐỒ TRỰC TUYẾN</a>
+            <div class="hero-btn" onclick="scrollToSection('map-section')" style="cursor:pointer;">XEM BẢN ĐỒ TRỰC TUYẾN
+            </div>
         </div>
 
         <div style="text-align:center; margin-top:60px;">
-            <h2 style="font-size:24px; color:var(--text-color); margin-bottom:12px;">TIN TỨC HOẠT ĐỘNG</h2>
+            <h2 style="font-size:24px; color:var(--text-color); margin-bottom:12px; text-transform:uppercase;">Tin tức
+                hoạt động</h2>
             <div style="width:60px; height:4px; background:var(--accent-color); margin:0 auto; border-radius:2px;">
             </div>
         </div>
@@ -104,7 +106,7 @@
                     <div class="header-icon">🛡️</div>
                     <div>
                         <h1>AN NINH NỘI BỘ</h1>
-                        <div class="header-subtitle">Hệ thống giám sát rủi ro</div>
+                        <div class="header-subtitle">Giám sát rủi ro hệ thống</div>
                     </div>
                 </div>
             </div>
@@ -116,7 +118,7 @@
             </div>
 
             <div class="sidebar-section">
-                <div class="sidebar-title">LỌC DỮ LIỆU</div>
+                <div class="sidebar-title">Lọc dữ liệu</div>
                 <div class="filter-option active" onclick="setDisplayFilter('all')">
                     <div class="filter-radio"></div>
                     <span class="filter-label">Tất cả cửa hàng</span>
@@ -132,7 +134,7 @@
             </div>
 
             <div class="sidebar-section">
-                <div class="sidebar-title">THỐNG KÊ TỔNG QUAN</div>
+                <div class="sidebar-title">Thống kê tổng quan</div>
                 <div class="stat-card">
                     <div class="stat-icon stores">🏢</div>
                     <div class="stat-content">
@@ -156,56 +158,47 @@
                 </div>
             </div>
 
-            <div style="margin-top:auto; font-size:11px; opacity:0.3; text-align:center;">
-                YODY SECURITY MAP v2.0 <br> Cloud Version
+            <div style="margin-top:auto; font-size:11px; opacity:0.3; text-align:center; padding-bottom:20px;">
+                YODY SECURITY PORTAL v2.0 <br> Cloud Optimized
             </div>
         </div>
 
         <!-- Main Map -->
         <div id="map"></div>
 
-        <!-- Overview Stats (Right) -->
+        <!-- Floating Stats (Right) -->
         <div id="om-stats">
-            <div class="om-title">TOP CẢNH BÁO</div>
+            <div class="om-title">Top Cảnh Báo</div>
             <div id="om-list">
-                <!-- Top violations list -->
+                <!-- Top list injected by JS -->
             </div>
         </div>
 
-        <!-- Custom Popup (Right Sidebar Slide-in) -->
+        <!-- Custom Popup (Right Sidebar) -->
         <div id="custom-popup">
-            <!-- Header -->
             <div class="popup-header">
                 <button class="popup-close" onclick="closePopup()">✕</button>
-                <div id="view-list" class="view-section" style="position:static;">
-                    <h3 id="popup-title">Store Name</h3>
-                    <div class="address" id="popup-address">Title address</div>
-                    <div class="popup-tabs">
-                        <div class="popup-tab violations active" onclick="switchTab('violations')">Sự vụ</div>
-                        <div class="popup-tab rewards" onclick="switchTab('highlights')">Khen thưởng</div>
-                    </div>
+                <h3 id="popup-title">Tên cửa hàng</h3>
+                <div id="popup-address" style="font-size:12px; opacity:0.6; margin-top:4px;">Địa chỉ</div>
+                <div class="popup-tabs">
+                    <div class="popup-tab violations active" onclick="switchTab('violations')">Sự vụ</div>
+                    <div class="popup-tab rewards" onclick="switchTab('highlights')">Khen thưởng</div>
                 </div>
             </div>
 
-            <!-- Body Container -->
-            <div id="popup-views">
+            <div id="popup-views" style="position:relative; flex:1; overflow:hidden;">
                 <!-- List View -->
-                <div id="view-list-body" class="view-section"
-                    style="position:absolute; top:0; left:0; width:100%; height:100%;">
-                    <div id="popup-body" class="popup-body">
-                        <!-- Items -->
-                    </div>
+                <div id="view-list" style="position:absolute; inset:0; overflow-y:auto; padding:24px;">
+                    <div id="popup-body"></div>
                 </div>
 
                 <!-- Detail View -->
-                <div id="view-detail" class="view-section">
-                    <div style="padding:20px; border-bottom:1px solid var(--border-color);">
-                        <button class="back-btn" onclick="backToList()">← Quay lại danh sách</button>
-                        <h3 style="font-size:16px;">Chi tiết sự vụ</h3>
-                    </div>
-                    <div id="detail-body" class="popup-body">
-                        <!-- Details -->
-                    </div>
+                <div id="view-detail"
+                    style="position:absolute; inset:0; background:var(--popup-bg); transform:translateX(100%); transition:0.3s; padding:24px; overflow-y:auto;">
+                    <button onclick="backToList()"
+                        style="background:none; border:none; color:var(--accent-color); font-weight:700; cursor:pointer; margin-bottom:20px;">←
+                        QUAY LẠI</button>
+                    <div id="detail-body"></div>
                 </div>
             </div>
         </div>
@@ -214,14 +207,11 @@
     <!-- REPORT SECTION -->
     <section id="report-section">
         <div class="report-box">
-            <div class="report-title" style="font-size:24px; text-align:center; margin-bottom:20px;">Gửi phản ánh ẩn
-                danh</div>
-
+            <h2 style="text-align:center; margin-bottom:30px;">Gửi phản ánh ẩn danh</h2>
             <iframe
                 src="https://docs.google.com/forms/d/e/1FAIpQLScrXACk6KHdNz0kkWKy2FynUR2xz1GIRJdHdbgGhfPPkGYwig/viewform?embedded=true"
-                width="100%" height="600" frameborder="0" marginheight="0" marginwidth="0"
-                style="background:transparent; border-radius:12px;">Đang tải...</iframe>
-
+                width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0"
+                style="border-radius:12px; background:transparent;">Đang tải form...</iframe>
             <p style="text-align:center; font-size:11px; margin-top:20px; color:var(--text-muted);">
                 * Dữ liệu được bảo mật và gửi trực tiếp về Ban kiểm soát.
             </p>
@@ -231,31 +221,39 @@
     <!-- FOOTER -->
     <div class="footer">
         <h3 style="font-size: 18px; margin-bottom: 20px; color: var(--text-color);">THÔNG TIN LIÊN HỆ</h3>
-        <p>📍 Địa chỉ: Công ty YODY, đường An Định, phường Việt Hòa, thành phố Hải Phòng</p>
-        <p>📞 Hotline: 0888 673 258</p>
-        <p>✉️ Email: Anninhnoibo@yody.vn</p>
-        <br>
-        <p style="font-style: italic; opacity:0.5;">Tài liệu nội bộ của Yody. Nghiêm cấm hành vi sao chép, chia sẻ.</p>
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span>📍</span>
+                <span>Địa chỉ: Công ty YODY, đường An Định, phường Việt Hòa, thành phố Hải Phòng</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span>📞</span>
+                <span>Hotline: 0888 673 258</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span>✉️</span>
+                <span>Email: Anninhnoibo@yody.vn</span>
+            </div>
+        </div>
+        <p style="font-style: italic; color: var(--text-muted); font-size: 13px;">
+            Tài liệu nội bộ của Yody. Nghiêm cấm hành vi sao chép, chia sẻ, phát tán dưới mọi hình thức.
+        </p>
     </div>
 
-    <!-- GLOBAL NEWS MODAL -->
-    <div id="global-news-modal">
+    <!-- News Modal -->
+    <div id="global-news-modal"
+        style="position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:20000; display:none; align-items:center; justify-content:center; padding:20px;">
         <div class="news-modal-container"
-            style="background:var(--popup-bg); padding:20px; border-radius:16px; width:90%; max-width:800px; max-height:90vh; overflow:hidden; display:flex; flex-direction:column; position:relative;">
+            style="width:100%; max-width:800px; max-height:90vh; border-radius:16px; overflow:hidden; display:flex; flex-direction:column; position:relative;">
             <button onclick="closeNewsModal()"
-                style="position:absolute; top:20px; right:20px; background:none; border:none; color:#fff; font-size:24px; cursor:pointer;">✕</button>
-            <div id="global-news-body" style="overflow-y:auto; padding-top:20px;"></div>
+                style="position:absolute; top:20px; right:20px; background:none; border:none; color:#fff; font-size:24px; cursor:pointer; z-index:2;">✕</button>
+            <div id="global-news-body" style="padding:40px; overflow-y:auto; flex:1;"></div>
         </div>
     </div>
+
     <style>
-        #global-news-modal {
-            position: fixed;
-            inset: 0;
-            z-index: 20000;
-            background: rgba(0, 0, 0, 0.8);
-            display: none;
-            align-items: center;
-            justify-content: center;
+        #global-news-modal.active {
+            display: flex;
         }
     </style>
 
