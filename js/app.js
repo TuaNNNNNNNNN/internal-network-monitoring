@@ -1,5 +1,5 @@
 /**
- * YODY Internal Network Monitoring - Portal Logic
+ * YODY Internal Network Monitoring - Exact Replication Logic
  * Optimized for Cloudflare Pages (Static Hosting)
  */
 
@@ -13,17 +13,13 @@ const JSON_HIGHLIGHTS = `https://opensheet.elk.sh/${SHEET_ID}/Highlight`;
 const JSON_MAIL = `https://opensheet.elk.sh/${MAIL_SHEET_ID}/Mail+YODY`;
 const CSV_HOME = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=165883319`;
 
-// --- GLOBAL STATE ---
-let map;
-let STORES_DATA = [];
-let EVENTS_DATA = [];
-let HIGHLIGHTS_DATA = [];
-let HOME_DATA = [];
-let markers = [];
-let currentDisplayFilter = 'all';
-let searchTimeout;
+// UI Config
+const ZOOM_THRESHOLD = 10;
+
+// GLOBAL STATE
+let map, STORES_DATA = [], EVENTS_DATA = [], HIGHLIGHTS_DATA = [], HOME_DATA = [], markers = [];
+let currentDisplayFilter = 'all', currentTab = 'violations', searchTimeout;
 let currentStore = null;
-let currentTab = 'violations';
 
 // --- INITIALIZATION ---
 window.onload = () => {
@@ -41,24 +37,43 @@ async function initPortal() {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('loading').style.display = 'flex';
 
-    // Initialize all components in parallel
+    // Initialize Map
+    map = L.map('map', { zoomControl: false }).setView([16.0, 107.5], 6);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+    L.control.zoom({ position: 'bottomleft' }).addTo(map);
+
+    // Sovereignty Labels
+    const islands = [
+        { name: "QUẦN ĐẢO HOÀNG SA (VIỆT NAM)", coords: [16.5, 112.0] },
+        { name: "QUẦN ĐẢO TRƯỜNG SA (VIỆT NAM)", coords: [10.0, 114.5] }
+    ];
+    islands.forEach(isl => {
+        L.marker(isl.coords, {
+            icon: L.divIcon({ className: 'map-label', html: isl.name, iconSize: [300, 20] }),
+            interactive: false
+        }).addTo(map);
+    });
+
+    map.on('zoomend', () => {
+        if (map.getZoom() >= ZOOM_THRESHOLD) document.getElementById('map').classList.add('show-names');
+        else document.getElementById('map').classList.remove('show-names');
+    });
+
+    // Load Data
     await Promise.all([
-        initMap(),
         loadPortalData(),
         loadHomeData()
     ]);
 
     document.getElementById('loading').style.display = 'none';
-
-    // Start seasonal decorations
     startSeasonalDecorations();
 }
 
 // --- AUTHENTICATION ---
 async function handleLogin() {
-    const emailInput = document.getElementById('email-input');
-    const email = emailInput.value.trim().toLowerCase();
+    const email = document.getElementById('email-input').value.trim().toLowerCase();
     const error = document.getElementById('login-error');
+    const btn = document.querySelector('.login-btn');
 
     if (!email.endsWith('@yody.vn')) {
         error.textContent = 'Chỉ chấp nhận email @yody.vn';
@@ -66,14 +81,12 @@ async function handleLogin() {
         return;
     }
 
-    const btn = document.querySelector('.login-btn');
     btn.innerText = 'Đang kiểm tra...';
     btn.disabled = true;
 
     try {
         const response = await fetch(JSON_MAIL);
         const whitelist = await response.json();
-
         const isAuthorized = whitelist.some(row =>
             Object.values(row).some(val => val && val.toString().toLowerCase().trim() === email)
         );
@@ -84,14 +97,13 @@ async function handleLogin() {
         } else {
             error.textContent = 'Email không có quyền truy cập';
             error.style.display = 'block';
-            btn.innerText = 'ĐĂNG NHẬP';
+            btn.innerText = 'Đăng nhập';
             btn.disabled = false;
         }
     } catch (e) {
-        console.error(e);
         error.textContent = 'Lỗi kết nối server';
         error.style.display = 'block';
-        btn.innerText = 'ĐĂNG NHẬP';
+        btn.innerText = 'Đăng nhập';
         btn.disabled = false;
     }
 }
@@ -107,28 +119,25 @@ async function loadPortalData() {
 
         EVENTS_DATA = events;
         HIGHLIGHTS_DATA = highlights;
-
-        // Process Stores
         STORES_DATA = stores.filter(s => s.ID || s.Store_ID);
 
-        // Indexing for performance
         const eventsMap = new Map();
         const highlightsMap = new Map();
 
         events.forEach(e => {
-            const id = (e.Store_ID || e['Store ID'] || '').toString();
+            const id = (e.Store_ID || e['Store ID'] || '').toString().trim();
             if (!eventsMap.has(id)) eventsMap.set(id, []);
             eventsMap.get(id).push(e);
         });
 
         highlights.forEach(h => {
-            const id = (h.Store_ID || h['Store ID'] || '').toString();
+            const id = (h.Store_ID || h['Store ID'] || '').toString().trim();
             if (!highlightsMap.has(id)) highlightsMap.set(id, []);
             highlightsMap.get(id).push(h);
         });
 
         STORES_DATA.forEach(s => {
-            const id = (s.ID || s.Store_ID || '').toString();
+            const id = (s.ID || s.Store_ID || '').toString().trim();
             s.violations = eventsMap.get(id) || [];
             s.highlights = highlightsMap.get(id) || [];
             s.violationCount = s.violations.length;
@@ -169,7 +178,6 @@ async function loadHomeData() {
 function renderHomeGrid() {
     const grid = document.getElementById('wall-grid');
     if (!grid) return;
-
     grid.innerHTML = HOME_DATA.map((p, i) => {
         let img = p.image || 'https://via.placeholder.com/400x250';
         if (img.includes('google.com/url')) {
@@ -179,16 +187,16 @@ function renderHomeGrid() {
         if (drive) img = `https://drive.google.com/uc?export=view&id=${drive[1]}`;
 
         return `
-      <div class="news-card" onclick="showNewsDetail(${i})">
-        <img src="${img}" class="news-img" onerror="this.src='https://via.placeholder.com/400x250'">
-        <div class="news-content">
-          <span class="news-tag">${p.category || 'TIN TỨC'}</span>
-          <div class="news-title">${p.title}</div>
-          <div class="news-excerpt">${p.excerpt || ''}</div>
-          <div class="news-footer">Chi tiết &rarr;</div>
-        </div>
-      </div>
-    `;
+            <div class="news-card" onclick="showNewsDetail(${i})">
+                <img src="${img}" class="news-img" onerror="this.src='https://via.placeholder.com/400x250'">
+                <div class="news-content">
+                    <span class="news-tag">${p.category || 'TIN TỨC'}</span>
+                    <div class="news-title">${p.title}</div>
+                    <div class="news-excerpt">${p.excerpt || ''}</div>
+                    <div class="news-footer"><span>Chi tiết →</span></div>
+                </div>
+            </div>
+        `;
     }).join('');
 }
 
@@ -211,12 +219,11 @@ function showNewsDetail(index) {
     }
 
     body.innerHTML = `
-    ${mediaHtml}
-    <span class="news-tag">${p.category || 'TIN TỨC'}</span>
-    <h2 style="font-size:28px; color:#fff; margin-bottom:20px;">${p.title}</h2>
-    <div style="font-size:16px; line-height:1.8; color:var(--text-muted); white-space:pre-wrap;">${p.detail || p.excerpt || 'Không có nội dung chi tiết.'}</div>
-  `;
-
+        <div style="margin-bottom:20px;">${mediaHtml}</div>
+        <h2 style="font-size:24px; color:var(--text-color); margin-bottom:12px;">${p.title}</h2>
+        <div style="font-size:13px; color:#fcb900; margin-bottom:20px; text-transform:uppercase; letter-spacing:1px;">${p.category || 'TIN TỨC'}</div>
+        <div style="font-size:16px; color:var(--text-color); line-height:1.6; white-space:pre-wrap;">${p.detail || p.excerpt || 'Không có nội dung chi tiết.'}</div>
+    `;
     modal.classList.add('active');
 }
 
@@ -227,65 +234,57 @@ function closeNewsModal() {
 function renderNewsTicker() {
     const container = document.getElementById('ticker-content');
     if (!container) return;
-
     const items = EVENTS_DATA.slice(0, 10).map(e => {
         const store = STORES_DATA.find(s => (s.ID || s.Store_ID || '').toString() === (e.Store_ID || e['Store ID'] || '').toString());
         const name = store ? (store.Store_Name || store.Name) : 'Cửa hàng';
-        return `<span class="ticker-item"><span class="date">${e.Date || ''}</span> <span class="highlight">[MỚI]</span> ${name}: ${e.Type || 'Sự việc mới'}</span>`;
+        return `<span class="ticker-item"><span class="date">[${e.Date || ''}]</span> <span class="highlight">${name}</span>: ${(e.Description || e.Type || '').substring(0, 60)}...</span>`;
     });
-
-    container.innerHTML = items.length ? items.join('') : '<span class="ticker-item">Chào mừng đến với YODY Internal Network Monitoring Portal</span>';
+    container.innerHTML = items.join(' <span style="margin: 0 10px; color: rgba(255,255,255,0.2)">|</span> ');
 }
 
 function updateStats() {
-    document.getElementById('stat-total-stores').innerText = STORES_DATA.length;
-    document.getElementById('stat-total-violations').innerText = EVENTS_DATA.length;
-    document.getElementById('stat-total-rewards').innerText = HIGHLIGHTS_DATA.length;
+    document.getElementById('total-stores').innerText = STORES_DATA.length;
+    document.getElementById('total-violations').innerText = EVENTS_DATA.length;
+    document.getElementById('total-rewards').innerText = HIGHLIGHTS_DATA.length;
+    updateTopViolations();
+}
+
+function updateTopViolations() {
+    const top = [...STORES_DATA].filter(s => s.violationCount > 0).sort((a, b) => b.violationCount - a.violationCount).slice(0, 5);
+    const container = document.getElementById('top-violations');
+    container.innerHTML = top.map((s, i) => `
+        <div class="om-item" onclick="selectSearchStore('${s.ID || s.Store_ID}')" style="cursor:pointer; padding: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 24px; height: 24px; background: ${i === 0 ? '#f44336' : (i === 1 ? '#ff9800' : (i === 2 ? '#ffeb3b' : '#999'))}; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: #000;">${i + 1}</div>
+                <div style="flex: 1; overflow: hidden;">
+                    <div style="font-weight: 600; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${s.Store_Name || s.Name}</div>
+                    <div style="font-size: 10px; color: rgba(255,255,255,0.6);">${s.violationCount} vi phạm</div>
+                </div>
+            </div>
+        </div>
+    `).join('');
 }
 
 function renderOMStats() {
-    const sorted = [...STORES_DATA].sort((a, b) => b.violationCount - a.violationCount).slice(0, 10);
-    const container = document.getElementById('om-list');
-    container.innerHTML = sorted.map(s => `
-        <div class="om-item" onclick="selectSearchStore('${s.ID || s.Store_ID}')" style="cursor:pointer">
-            <span class="om-name">${s.Store_Name || s.Name}</span>
-            <span class="om-count" style="background:${s.violationCount > 3 ? 'rgba(244,67,54,0.2)' : 'rgba(0,255,136,0.2)'}; color:${s.violationCount > 3 ? '#ff8a80' : '#69f0ae'}">
-                ${s.violationCount}
-            </span>
+    const omCounts = {};
+    STORES_DATA.forEach(s => {
+        if (s.violationCount > 0) {
+            const addr = s.Address || '';
+            let om = 'Khác';
+            if (addr.includes('OM.')) om = addr.split('OM.')[1].split(',')[0].trim();
+            omCounts[om] = (omCounts[om] || 0) + s.violationCount;
+        }
+    });
+    const sorted = Object.entries(omCounts).sort((a, b) => b[1] - a[1]);
+    document.getElementById('om-list').innerHTML = sorted.map(([name, count]) => `
+        <div class="om-item">
+            <span class="om-name">${name}</span>
+            <span class="om-count">${count}</span>
         </div>
     `).join('');
 }
 
 // --- MAP LOGIC ---
-async function initMap() {
-    map = L.map('map', { zoomControl: false }).setView([16.0, 106.0], 6);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-    // Vietnam GeoJSON for borders
-    try {
-        const vnBorder = await fetch('https://cdn.jsdelivr.net/gh/Vizzuality/growasia_calculator@master/public/vietnam.geojson').then(r => r.json());
-        L.geoJSON(vnBorder, { style: { color: 'var(--accent-color)', weight: 1.5, fillOpacity: 0.05 } }).addTo(map);
-    } catch (e) { }
-
-    // Sovereignty Labels
-    const islands = [
-        { name: "QUẦN ĐẢO HOÀNG SA (VIỆT NAM)", coords: [16.5, 112.0] },
-        { name: "QUẦN ĐẢO TRƯỜNG SA (VIỆT NAM)", coords: [10.0, 114.5] }
-    ];
-    islands.forEach(isl => {
-        L.marker(isl.coords, {
-            icon: L.divIcon({ className: 'map-label', html: isl.name, iconSize: [300, 20] }),
-            interactive: false
-        }).addTo(map);
-    });
-
-    map.on('zoomend', () => {
-        if (map.getZoom() >= 10) document.getElementById('map').classList.add('show-names');
-        else document.getElementById('map').classList.remove('show-names');
-    });
-}
-
 function renderMarkers() {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
@@ -298,46 +297,37 @@ function renderMarkers() {
         const lng = parseFloat(s.Longitude || s.Lng);
         if (!lat || !lng) return;
 
-        const colorClass = s.violationCount === 0 ? 'marker-green' :
-            (s.violationCount < 3 ? 'marker-yellow' :
-                (s.violationCount < 5 ? 'marker-orange' : 'marker-red'));
+        const color = s.violationCount === 0 ? 'marker-green' :
+            (s.violationCount <= 2 ? 'marker-yellow' :
+                (s.violationCount <= 4 ? 'marker-orange' : 'marker-red'));
 
-        const pulseHtml = (s.violationCount >= 5) ? `<div class="marker-pulse pulse-high"></div>` : '';
+        const pulse = (s.violationCount >= 5) ? '<div class="marker-pulse pulse-high"></div>' : '';
 
         const icon = L.divIcon({
             className: 'custom-marker',
-            html: `<div class="marker-container">${pulseHtml}<div class="marker-circle ${colorClass}">${s.violationCount}</div></div>`,
+            html: `<div class="marker-container">${pulse}<div class="marker-circle ${color}">${s.violationCount}</div></div>`,
             iconSize: [32, 32],
             iconAnchor: [16, 16]
         });
 
         const m = L.marker([lat, lng], { icon }).addTo(map);
-        m.bindTooltip(s.Store_Name || s.Name, { permanent: true, direction: 'top', className: 'store-label-tooltip', offset: [0, -20] });
-
-        m.on('click', () => {
-            openStorePopup(s);
-            map.setView([lat, lng], 15);
-        });
-
+        m.bindTooltip(s.Store_Name || s.Name, { permanent: true, direction: 'top', className: 'store-label-tooltip', offset: [0, -16] });
+        m.on('click', () => { openStorePopup(s); map.setView([lat, lng], 16); });
         markers.push(m);
     });
 }
 
-// --- SIDEBAR / POPUP ---
+// --- POPUP LOGIC ---
 function openStorePopup(store) {
     currentStore = store;
     const popup = document.getElementById('custom-popup');
     popup.classList.add('open');
     popup.classList.remove('show-detail');
-
-    document.getElementById('popup-title').innerText = store.Store_Name || store.Name;
-    document.getElementById('popup-address').innerText = store.Address || 'Chưa cập nhật địa chỉ';
-
-    switchTab(currentTab || 'violations');
-}
-
-function closePopup() {
-    document.getElementById('custom-popup').classList.remove('open');
+    document.getElementById('popup-store-name').innerText = store.Store_Name || store.Name;
+    document.getElementById('popup-store-address').innerText = store.Address || '';
+    document.getElementById('tab-violations-count').innerText = store.violationCount;
+    document.getElementById('tab-rewards-count').innerText = store.highlightCount;
+    switchTab('violations');
 }
 
 function switchTab(tab) {
@@ -345,37 +335,59 @@ function switchTab(tab) {
     document.querySelectorAll('.popup-tab').forEach(el => el.classList.remove('active'));
     document.querySelector(`.popup-tab.${tab}`).classList.add('active');
 
-    const list = tab === 'violations' ? currentStore.violations : currentStore.highlights;
+    const items = tab === 'violations' ? currentStore.violations : currentStore.highlights;
     const body = document.getElementById('popup-body');
-
-    if (!list || list.length === 0) {
-        body.innerHTML = '<div style="text-align:center; padding:40px; opacity:0.5;">Không có dữ liệu.</div>';
-        return;
-    }
-
-    body.innerHTML = list.map(item => `
-    <div class="item-card" onclick="showItemDetail(${JSON.stringify(item).replace(/"/g, '&quot;')})">
-      <div class="item-title">
-        <span>${item.Type || item['Violation_Type'] || 'Ghi nhận'}</span>
-        <span class="item-date">${item.Date || ''}</span>
-      </div>
-      <div style="font-size:13px; opacity:0.7; line-height:1.4;">${(item.Description || item.Desc || '').substring(0, 60)}...</div>
-    </div>
-  `).join('');
+    body.innerHTML = items?.length ? items.map(item => `
+        <div class="item-card" onclick="showDetail(${JSON.stringify(item).replace(/"/g, '&quot;')})">
+            <div class="item-title"><span>${(item.Description || item.Type || '').substring(0, 40)}...</span></div>
+            <div class="item-preview" style="display:flex; justify-content:space-between; margin-top:4px;">
+                <span>${item.Date || ''}</span>
+                <span style="font-size:10px; opacity:0.7; background:rgba(255,255,255,0.1); padding:2px 6px; border-radius:4px;">${item.Type || 'Ghi nhận'}</span>
+            </div>
+        </div>
+    `).join('') : '<div style="text-align:center; padding:20px; color:rgba(255,255,255,0.5);">Không có dữ liệu</div>';
 }
 
-function showItemDetail(item) {
+function showDetail(item) {
     const body = document.getElementById('detail-body');
-    body.innerHTML = Object.entries(item).map(([k, v]) => {
-        if (!v || k.startsWith('_')) return '';
-        return `<div style="margin-bottom:15px;"><div style="font-size:11px; font-weight:700; opacity:0.5; text-transform:uppercase;">${k}</div><div style="font-size:15px; margin-top:4px; line-height:1.5;">${v}</div></div>`;
-    }).join('');
-
-    document.getElementById('view-detail').style.transform = 'translateX(0)';
+    body.innerHTML = Object.entries(item).map(([k, v]) => v ? `
+        <div class="detail-field">
+            <div class="detail-label">${k.replace(/_/g, ' ')}</div>
+            <div class="detail-value">${v}</div>
+        </div>
+    ` : '').join('');
+    document.getElementById('custom-popup').classList.add('show-detail');
 }
 
-function backToList() {
-    document.getElementById('view-detail').style.transform = 'translateX(100%)';
+function closePopup() { document.getElementById('custom-popup').classList.remove('open'); }
+function backToList() { document.getElementById('custom-popup').classList.remove('show-detail'); }
+
+// --- SEARCH & FILTER ---
+function handleSearch(query) {
+    clearTimeout(searchTimeout);
+    const results = document.getElementById('search-results');
+    if (!query.trim()) { results.classList.remove('active'); return; }
+    searchTimeout = setTimeout(() => {
+        const q = query.toLowerCase();
+        const matches = STORES_DATA.filter(s => (s.Store_Name || s.Name || '').toLowerCase().includes(q) || (s.Address || '').toLowerCase().includes(q)).slice(0, 10);
+        results.innerHTML = matches.map(s => `
+            <div class="search-item" onclick="selectSearchStore('${s.ID || s.Store_ID}')">
+                <div>${s.Store_Name}</div>
+                <div class="sub-text">${s.Address || ''}</div>
+            </div>
+        `).join('');
+        results.classList.add('active');
+    }, 300);
+}
+
+function selectSearchStore(id) {
+    const s = STORES_DATA.find(st => (st.ID || st.Store_ID || '').toString() === id.toString());
+    if (s) {
+        map.setView([parseFloat(s.Latitude || s.Lat), parseFloat(s.Longitude || s.Lng)], 18);
+        openStorePopup(s);
+        document.getElementById('store-search').value = '';
+        document.getElementById('search-results').classList.remove('active');
+    }
 }
 
 function setDisplayFilter(filter) {
@@ -385,36 +397,16 @@ function setDisplayFilter(filter) {
     renderMarkers();
 }
 
-function handleSearch(query) {
-    clearTimeout(searchTimeout);
-    const results = document.getElementById('search-results');
-    if (!query.trim()) { results.classList.remove('active'); return; }
+// --- THEME & DECORATIONS ---
+const THEMES = [
+    { id: 'dark', icon: '🌙', name: 'Tối' },
+    { id: 'tet', icon: '🧧', name: 'Tết' },
+    { id: 'spring', icon: '🌸', name: 'Xuân' },
+    { id: 'summer', icon: '🌊', name: 'Hạ' },
+    { id: 'autumn', icon: '🍂', name: 'Thu' },
+    { id: 'winter', icon: '❄️', name: 'Đông' }
+];
 
-    searchTimeout = setTimeout(() => {
-        const q = query.toLowerCase();
-        const matches = STORES_DATA.filter(s => (s.Store_Name || s.Name || '').toLowerCase().includes(q) || (s.Address || '').toLowerCase().includes(q)).slice(0, 10);
-
-        results.innerHTML = matches.map(s => `
-            <div class="search-item" onclick="selectSearchStore('${s.ID || s.Store_ID}')">
-                <div style="font-weight:600;">${s.Store_Name || s.Name}</div>
-                <div class="sub-text">${s.Address || ''}</div>
-            </div>
-        `).join('');
-        results.classList.add('active');
-    }, 300);
-}
-
-function selectSearchStore(id) {
-    const store = STORES_DATA.find(s => (s.ID || s.Store_ID || '').toString() === id.toString());
-    if (store) {
-        map.setView([parseFloat(store.Latitude || store.Lat), parseFloat(store.Longitude || store.Lng)], 16);
-        openStorePopup(store);
-        document.getElementById('store-search').value = '';
-        document.getElementById('search-results').classList.remove('active');
-    }
-}
-
-// --- THEME & ANIMATIONS ---
 function initTheme() {
     const manual = localStorage.getItem('theme');
     const auto = getSeasonalTheme();
@@ -438,81 +430,50 @@ function applyTheme(id) {
     if (btn) btn.innerHTML = `<span>${theme.icon}</span> ${theme.name}`;
 }
 
-const THEMES = [
-    { id: 'dark', icon: '🌙', name: 'Tối' },
-    { id: 'tet', icon: '🧧', name: 'Tết' },
-    { id: 'spring', icon: '🌸', name: 'Xuân' },
-    { id: 'summer', icon: '🌊', name: 'Hạ' },
-    { id: 'autumn', icon: '🍂', name: 'Thu' },
-    { id: 'winter', icon: '❄️', name: 'Đông' }
-];
-
-document.getElementById('theme-toggle-btn').onclick = () => {
+function toggleTheme() {
     const curr = document.documentElement.getAttribute('data-theme');
     const idx = THEMES.findIndex(t => t.id === curr);
     const next = THEMES[(idx + 1) % THEMES.length];
     applyTheme(next.id);
     localStorage.setItem('theme', next.id);
-};
+}
 
 function startSeasonalDecorations() {
     const theme = document.documentElement.getAttribute('data-theme');
     if (theme === 'dark') return;
-
-    const config = {
-        tet: { char: '🧧', count: 12 },
-        spring: { char: '🌸', count: 15 },
-        summer: { char: '🌊', count: 0 }, // No animation for summer
-        autumn: { char: '🍂', count: 20 },
-        winter: { char: '❄️', count: 30 }
-    };
-
-    const item = config[theme];
-    if (!item || item.count === 0) return;
-
-    for (let i = 0; i < item.count; i++) {
-        createDecoration(item.char, theme);
+    const config = { tet: '🧧', spring: '🌸', autumn: '🍂', winter: '❄️' };
+    const char = config[theme];
+    if (char) {
+        for (let i = 0; i < 20; i++) {
+            const el = document.createElement('div');
+            el.className = 'decoration';
+            el.innerText = char;
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.fontSize = (Math.random() * 20 + 10) + 'px';
+            el.style.animation = `${theme === 'winter' ? 'snow' : 'fall'} ${Math.random() * 10 + 5}s linear infinite`;
+            el.style.animationDelay = Math.random() * 10 + 's';
+            el.style.position = 'fixed'; el.style.top = '-50px'; el.style.zIndex = '10000'; el.style.pointerEvents = 'none';
+            document.body.appendChild(el);
+        }
     }
 }
 
-function createDecoration(char, theme) {
-    const el = document.createElement('div');
-    el.className = 'decoration';
-    el.innerText = char;
-    el.style.left = Math.random() * 100 + 'vw';
-    el.style.fontSize = (Math.random() * 20 + 10) + 'px';
-    el.style.opacity = Math.random() * 0.5 + 0.3;
-    el.style.animationName = theme === 'winter' ? 'snow' : 'fall';
-    el.style.animationDuration = (Math.random() * 10 + 5) + 's';
-    el.style.animationDelay = (Math.random() * 10) + 's';
-    el.style.animationIterationCount = 'infinite';
-    document.body.appendChild(el);
-}
-
-// --- NAVIGATION ---
+// --- UTILS ---
 function scrollToSection(id) {
     const el = document.getElementById(id);
-    if (el) {
-        const y = el.getBoundingClientRect().top + window.pageYOffset - 60;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-    }
+    if (el) window.scrollTo({ top: el.offsetTop - 60, behavior: 'smooth' });
 }
 
 window.addEventListener('scroll', () => {
     const y = window.scrollY + 100;
     const sections = ['home-section', 'map-section', 'report-section'];
-    const items = document.querySelectorAll('.nav-item');
-
     sections.forEach((id, i) => {
         const sec = document.getElementById(id);
-        if (!sec) return;
-        if (y >= sec.offsetTop && y < sec.offsetTop + sec.offsetHeight) {
-            items.forEach(it => it.classList.remove('active'));
-            if (items[i]) items[i].classList.add('active');
+        if (sec && y >= sec.offsetTop && y < sec.offsetTop + sec.offsetHeight) {
+            document.querySelectorAll('.nav-item').forEach(it => it.classList.remove('active'));
+            document.querySelectorAll('.nav-item')[i].classList.add('active');
         }
     });
 });
 
-function toggleMobileSidebar() {
-    document.querySelector('.sidebar').classList.toggle('open');
-}
+function toggleMobileSidebar() { document.querySelector('.sidebar').classList.toggle('open'); }
